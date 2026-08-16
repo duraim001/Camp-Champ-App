@@ -25,78 +25,69 @@ class ParentStatCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: AppColors.white,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: AppColors.primaryPurple.withValues(alpha: 0.08),
             ),
             boxShadow: [
               BoxShadow(
                 color: AppColors.primaryPurple.withValues(alpha: 0.04),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
               ),
             ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(icon, color: color, size: 20),
+                    child: Icon(icon, color: color, size: 18),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.lightBackground,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Text(
-                      'VIEW ONLY',
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.secondaryText,
-                        letterSpacing: 0.5,
-                      ),
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.primaryPurple,
+                      letterSpacing: 0.5,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 6),
               Text(
                 value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: 18,
                   fontWeight: FontWeight.w900,
                   color: color,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primaryPurple,
-                ),
-              ),
-              Text(
                 subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 11,
+                  fontSize: 10,
                   color: AppColors.secondaryText,
                 ),
               ),

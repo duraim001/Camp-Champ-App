@@ -127,7 +127,7 @@ class ParentProfileScreen extends StatelessWidget {
                     const Divider(height: 20),
                     _buildProfileItem(Icons.contact_phone_rounded, 'Emergency Contact', '+91 90000 00099'),
                     const Divider(height: 20),
-                    _buildProfileItem(Icons.email_rounded, 'Email Address', 'parent.demo@smartsec.demo'),
+                    _buildProfileItem(Icons.email_rounded, 'Email Address', 'parent.demo@campchamp.demo'),
                     const Divider(height: 20),
                     _buildProfileItem(Icons.location_on_rounded, 'Residential Address', 'No. 42, Main Road, Tiruchengode, Tamil Nadu'),
                   ],

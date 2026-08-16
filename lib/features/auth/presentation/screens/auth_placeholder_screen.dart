@@ -11,7 +11,7 @@ class AuthPlaceholderScreen extends StatelessWidget {
       backgroundColor: AppColors.lightBackground,
       appBar: AppBar(
         title: const Text(
-          'Smart SEC Authentication',
+          'Camp Champ Authentication',
           style: TextStyle(
             color: AppColors.white,
             fontWeight: FontWeight.bold,
@@ -52,7 +52,7 @@ class AuthPlaceholderScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               const Text(
-                'Smart SEC Authentication',
+                'Camp Champ Authentication',
                 style: TextStyle(
                   color: AppColors.primaryPurple,
                   fontSize: 20,

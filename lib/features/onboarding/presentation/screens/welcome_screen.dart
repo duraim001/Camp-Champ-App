@@ -9,7 +9,7 @@ import '../widgets/decorative_divider.dart';
 import '../widgets/feature_value_item.dart';
 import '../widgets/get_started_button.dart';
 
-/// WelcomeScreen renders Step 1 onboarding screen for Smart SEC app.
+/// WelcomeScreen renders Step 1 onboarding screen for Camp Champ app.
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
@@ -118,9 +118,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               ),
                               const SizedBox(height: 6),
 
-                              // Main Prominent Application Title: Smart SEC
+                              // Main Prominent Application Title: Camp Champ
                               const Text(
-                                'Smart SEC',
+                                'Camp Champ',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: AppColors.primaryPurple,

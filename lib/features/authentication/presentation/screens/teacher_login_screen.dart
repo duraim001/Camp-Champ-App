@@ -103,7 +103,7 @@ class _TeacherLoginScreenState extends State<TeacherLoginScreen> {
               ),
               const SizedBox(height: 4),
               const Text(
-                'Welcome to your Smart SEC faculty portal',
+                'Welcome to your Camp Champ faculty portal',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: AppColors.secondaryText,

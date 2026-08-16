@@ -1,154 +1,282 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/routes/app_routes.dart';
-import '../widgets/role_login_card.dart';
 
-/// LoginSelectionScreen allows users to choose their login role.
-class LoginSelectionScreen extends StatelessWidget {
+/// LoginSelectionScreen presents a modern, minimal role selection onboarding screen.
+class LoginSelectionScreen extends StatefulWidget {
   const LoginSelectionScreen({super.key});
 
   @override
+  State<LoginSelectionScreen> createState() => _LoginSelectionScreenState();
+}
+
+class _LoginSelectionScreenState extends State<LoginSelectionScreen> {
+  String? _selectedRole;
+
+  void _navigateToSelectedRoleLogin() {
+    if (_selectedRole == null) return;
+
+    switch (_selectedRole) {
+      case 'Student':
+        Navigator.pushNamed(context, AppRoutes.studentLogin);
+        break;
+      case 'Teacher':
+        Navigator.pushNamed(context, AppRoutes.teacherLogin);
+        break;
+      case 'Parent':
+        Navigator.pushNamed(context, AppRoutes.parentLogin);
+        break;
+      case 'Admin':
+        Navigator.pushNamed(context, AppRoutes.adminLogin);
+        break;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final bool isNextEnabled = _selectedRole != null;
+
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.gold),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: const Text(
-          'Smart SEC',
+          'Camp Champ',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: AppColors.white,
           ),
         ),
         backgroundColor: AppColors.primaryPurple,
-        iconTheme: const IconThemeData(color: AppColors.gold),
         elevation: 0,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 4),
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 8),
 
-              // Welcome Title
-              const Text(
-                'Welcome to Smart SEC',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.primaryPurple,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.3,
+                    // Welcoming Title
+                    const Text(
+                      'Who are you?',
+                      style: TextStyle(
+                        color: AppColors.primaryPurple,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+
+                    // Subtitle
+                    const Text(
+                      'Select your role to continue',
+                      style: TextStyle(
+                        color: AppColors.secondaryText,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+
+                    // 1. STUDENT OPTION
+                    _buildRoleOptionTile(
+                      roleName: 'Student',
+                      icon: Icons.school_rounded,
+                    ),
+                    const SizedBox(height: 12),
+
+                    // 2. TEACHER OPTION
+                    _buildRoleOptionTile(
+                      roleName: 'Teacher',
+                      icon: Icons.badge_rounded,
+                    ),
+                    const SizedBox(height: 12),
+
+                    // 3. PARENT OPTION
+                    _buildRoleOptionTile(
+                      roleName: 'Parent',
+                      icon: Icons.family_restroom_rounded,
+                    ),
+                    const SizedBox(height: 12),
+
+                    // 4. ADMIN OPTION
+                    _buildRoleOptionTile(
+                      roleName: 'Admin',
+                      icon: Icons.admin_panel_settings_rounded,
+                    ),
+                    const SizedBox(height: 32),
+                  ],
                 ),
               ),
-              const SizedBox(height: 4),
+            ),
 
-              // Official Tagline Subtitle
-              const Text(
-                'One Campus, One Platform, One Connection',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.secondaryPurple,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              // Instruction Text
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.gold.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppColors.gold.withValues(alpha: 0.5),
-                  ),
-                ),
-                child: const Text(
-                  'Select your account type to continue',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: AppColors.darkText,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // 2 x 2 Responsive Grid for Login Cards
-              GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 2,
-                crossAxisSpacing: 14,
-                mainAxisSpacing: 14,
-                childAspectRatio: 0.95,
-                children: [
-                  // 1. ADMIN LOGIN CARD
-                  RoleLoginCard(
-                    title: 'ADMIN LOGIN',
-                    description:
-                        'Manage campus operations and academic administration',
-                    icon: Icons.admin_panel_settings_outlined,
-                    onTap: () {
-                      Navigator.pushNamed(context, AppRoutes.adminLogin);
-                    },
-                  ),
-
-                  // 2. TEACHER LOGIN CARD
-                  RoleLoginCard(
-                    title: 'TEACHER LOGIN',
-                    description:
-                        'Manage classes, attendance, marks and activities',
-                    icon: Icons.badge_outlined,
-                    onTap: () {
-                      Navigator.pushNamed(context, AppRoutes.teacherLogin);
-                    },
-                  ),
-
-                  // 3. PARENT LOGIN CARD
-                  RoleLoginCard(
-                    title: 'PARENT LOGIN',
-                    description:
-                        "Monitor your child's academic progress & updates",
-                    icon: Icons.family_restroom_outlined,
-                    onTap: () {
-                      Navigator.pushNamed(context, AppRoutes.parentLogin);
-                    },
-                  ),
-
-                  // 4. STUDENT LOGIN CARD
-                  RoleLoginCard(
-                    title: 'STUDENT LOGIN',
-                    description:
-                        'Access academics, attendance, exams & services',
-                    icon: Icons.school_outlined,
-                    onTap: () {
-                      Navigator.pushNamed(context, AppRoutes.studentLogin);
-                    },
+            // BOTTOM NEXT BUTTON CONTAINER
+            Container(
+              padding: const EdgeInsets.all(24.0),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryPurple.withValues(alpha: 0.06),
+                    blurRadius: 16,
+                    offset: const Offset(0, -4),
                   ),
                 ],
               ),
-
-              const SizedBox(height: 24),
-
-              // Bottom Campus Identity Footer
-              const Text(
-                'Sengunthar Engineering College • Tiruchengode',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.secondaryText,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: isNextEnabled ? _navigateToSelectedRoleLogin : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryPurple,
+                        disabledBackgroundColor: AppColors.primaryPurple.withValues(alpha: 0.3),
+                        elevation: isNextEnabled ? 2 : 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: Text(
+                        'Next',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isNextEnabled ? AppColors.gold : AppColors.white.withValues(alpha: 0.6),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Sengunthar Engineering College • Tiruchengode',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppColors.secondaryText,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoleOptionTile({
+    required String roleName,
+    required IconData icon,
+  }) {
+    final isSelected = _selectedRole == roleName;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+      decoration: BoxDecoration(
+        color: isSelected
+            ? AppColors.primaryPurple.withValues(alpha: 0.08)
+            : AppColors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isSelected
+              ? AppColors.primaryPurple
+              : AppColors.primaryPurple.withValues(alpha: 0.12),
+          width: isSelected ? 2.0 : 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isSelected
+                ? AppColors.primaryPurple.withValues(alpha: 0.08)
+                : AppColors.primaryPurple.withValues(alpha: 0.03),
+            blurRadius: isSelected ? 12 : 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          onTap: () {
+            setState(() {
+              _selectedRole = roleName;
+            });
+          },
+          borderRadius: BorderRadius.circular(14),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+            child: Row(
+              children: [
+                // Icon
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.primaryPurple
+                        : AppColors.primaryPurple.withValues(alpha: 0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon,
+                    color: isSelected ? AppColors.gold : AppColors.primaryPurple,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 16),
+
+                // Role Name
+                Expanded(
+                  child: Text(
+                    roleName,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                      color: isSelected ? AppColors.primaryPurple : AppColors.darkText,
+                    ),
+                  ),
+                ),
+
+                // Selection Radio Checkmark Indicator
+                Container(
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isSelected ? AppColors.primaryPurple : Colors.transparent,
+                    border: Border.all(
+                      color: isSelected
+                          ? AppColors.primaryPurple
+                          : AppColors.secondaryText.withValues(alpha: 0.5),
+                      width: isSelected ? 0 : 1.5,
+                    ),
+                  ),
+                  child: isSelected
+                      ? const Icon(
+                          Icons.check_rounded,
+                          size: 14,
+                          color: AppColors.gold,
+                        )
+                      : null,
+                ),
+              ],
+            ),
           ),
         ),
       ),

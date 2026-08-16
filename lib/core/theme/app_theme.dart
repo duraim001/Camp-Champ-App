@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../constants/app_colors.dart';
 
-/// AppTheme builds the ThemeData for Smart SEC app.
+/// AppTheme builds the ThemeData for Camp Champ app.
 abstract class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(

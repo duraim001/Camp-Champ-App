@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// AppColors defines the official Smart SEC color palette.
+/// AppColors defines the official Camp Champ color palette.
 /// Features a premium purple and gold college-branding theme.
 abstract class AppColors {
   /// Primary Purple: #2B0A63

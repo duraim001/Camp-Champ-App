@@ -105,7 +105,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               ),
               const SizedBox(height: 4),
               const Text(
-                'Secure access to Smart SEC administration',
+                'Secure access to Camp Champ administration',
                 style: TextStyle(
                   color: AppColors.secondaryText,
                   fontSize: 13,

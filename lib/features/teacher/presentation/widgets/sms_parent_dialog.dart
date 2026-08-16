@@ -46,7 +46,7 @@ class _SmsParentDialogState extends State<SmsParentDialog> {
         _parentPhone = parent?.phone ?? '+91 90000 00003';
         _parentId = parent?.id ?? 'PAR001';
         _messageController.text =
-            'Dear Parent/Guardian, your ward ${widget.studentName} (${widget.registerNumber}) was marked ABSENT for ${widget.subject} class on ${widget.date}. Please contact the college if necessary. - Smart SEC';
+            'Dear Parent/Guardian, your ward ${widget.studentName} (${widget.registerNumber}) was marked ABSENT for ${widget.subject} class on ${widget.date}. Please contact the college if necessary. - Camp Champ';
         _isLoading = false;
       });
     }

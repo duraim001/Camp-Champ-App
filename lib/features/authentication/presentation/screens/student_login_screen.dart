@@ -103,7 +103,7 @@ class _StudentLoginScreenState extends State<StudentLoginScreen> {
               ),
               const SizedBox(height: 4),
               const Text(
-                'Welcome back to your Smart SEC student portal',
+                'Welcome back to your Camp Champ student portal',
                 style: TextStyle(
                   color: AppColors.secondaryText,
                   fontSize: 13,

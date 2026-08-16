@@ -13,7 +13,7 @@ class SmartSecApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Smart SEC',
+      title: 'Camp Champ',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       initialRoute: AppRoutes.welcome,

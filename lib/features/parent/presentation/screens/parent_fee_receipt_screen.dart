@@ -81,7 +81,7 @@ class ParentFeeReceiptScreen extends StatelessWidget {
                               ),
                               const SizedBox(width: 10),
                               const Text(
-                                'SMART SEC',
+                                'CAMP CHAMP',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 20,
@@ -197,7 +197,7 @@ class ParentFeeReceiptScreen extends StatelessWidget {
                           const Icon(Icons.security, size: 16, color: AppColors.secondaryText),
                           const SizedBox(width: 6),
                           const Text(
-                            'Computer Generated Digital Receipt — Smart SEC College Portal',
+                            'Computer Generated Digital Receipt — Camp Champ College Portal',
                             style: TextStyle(fontSize: 10, color: AppColors.secondaryText, fontWeight: FontWeight.w500),
                           ),
                         ],

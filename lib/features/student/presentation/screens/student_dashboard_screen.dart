@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../services/mock_student_service.dart';
+import '../../../admin/presentation/screens/admin_library_screen.dart';
+import '../../../admin/presentation/screens/announcements_screen.dart';
 import 'academic_performance_screen.dart';
 import 'assignments_screen.dart';
 import 'attendance_screen.dart';
 import 'exam_schedule_screen.dart';
 import 'notifications_screen.dart';
 import 'online_classes_screen.dart';
+import 'student_grievance_screen.dart';
 import 'student_profile_screen.dart';
-import 'timetable_screen.dart';
+import 'student_settings_screen.dart';
 import '../widgets/student_stat_card.dart';
 
 class StudentDashboardScreen extends StatefulWidget {
@@ -23,18 +26,11 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> pages = [
-      _buildHomeDashboard(context),
-      const AcademicPerformanceScreen(),
-      const TimetableScreen(),
-    ];
-    final safeIndex = _currentIndex >= pages.length ? 0 : _currentIndex;
-
     return PopScope(
-      canPop: safeIndex == 0,
+      canPop: _currentIndex == 0,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        if (safeIndex != 0) {
+        if (_currentIndex != 0) {
           setState(() {
             _currentIndex = 0;
           });
@@ -42,63 +38,90 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
       },
       child: Scaffold(
         backgroundColor: AppColors.lightBackground,
-        body: pages[safeIndex],
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: safeIndex,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: AppColors.white,
-          selectedItemColor: AppColors.primaryPurple,
-          unselectedItemColor: AppColors.secondaryText,
-          selectedLabelStyle:
-              const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
-          unselectedLabelStyle: const TextStyle(fontSize: 10),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.analytics_outlined),
-              activeIcon: Icon(Icons.analytics),
-              label: 'Academics',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today_outlined),
-              activeIcon: Icon(Icons.calendar_today),
-              label: 'Classes',
-            ),
-          ],
-        ),
+        drawer: _buildStudentDrawer(context),
+        body: _buildPage(_currentIndex),
       ),
     );
   }
 
-  // --- HOME TAB DASHBOARD ---
-  Widget _buildHomeDashboard(BuildContext context) {
+  // --- PAGE ROUTER FOR 7 STUDENT SECTIONS ---
+  Widget _buildPage(int index) {
+    switch (index) {
+      case 0:
+        return _buildHomeDashboard(context);
+      case 1:
+        return _buildHeaderWrapper(
+          title: 'Campus Circulars',
+          subtitle: 'Official Campus Directives & Notices',
+          child: const AnnouncementsScreen(),
+        );
+      case 2:
+        return _buildHeaderWrapper(
+          title: 'Student Library',
+          subtitle: 'Digital Books & Resource Catalog',
+          child: const AdminLibraryScreen(),
+        );
+      case 3:
+        return _buildHeaderWrapper(
+          title: 'Academic Overview',
+          subtitle: 'Subjects, Schedule & CIA Performance',
+          child: const AcademicPerformanceScreen(),
+        );
+      case 4:
+        return _buildHeaderWrapper(
+          title: 'Examinations & Timetable',
+          subtitle: 'Exam Schedule & CIA Internal Marks',
+          child: const ExamScheduleScreen(),
+        );
+      case 5:
+        return _buildHeaderWrapper(
+          title: 'Student Grievance & AI Analysis',
+          subtitle: 'Redressal & AI Performance Prediction',
+          child: const StudentGrievanceScreen(),
+        );
+      case 6:
+        return _buildHeaderWrapper(
+          title: 'Student Account & Settings',
+          subtitle: 'Upload Documents, Password & Preferences',
+          child: const StudentSettingsScreen(),
+        );
+      default:
+        return _buildHomeDashboard(context);
+    }
+  }
+
+  // --- HEADER WRAPPER FOR SECONDARY STUDENT SECTIONS ---
+  Widget _buildHeaderWrapper({
+    required String title,
+    required String subtitle,
+    required Widget child,
+  }) {
     final student = MockStudentService().getDemoStudentProfile();
 
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
+      drawer: _buildStudentDrawer(context),
       appBar: AppBar(
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu_rounded, color: AppColors.gold, size: 26),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Good Morning, ${student.name.split(' ').first}',
+              student.name,
               style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.white),
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                color: AppColors.white,
+              ),
             ),
-            const Text(
-              'Welcome to Smart SEC',
-              style: TextStyle(fontSize: 11, color: AppColors.gold),
+            Text(
+              '${student.year} • ${student.department}',
+              style: const TextStyle(fontSize: 10, color: AppColors.gold),
             ),
           ],
         ),
@@ -117,7 +140,200 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.account_circle_outlined, color: AppColors.white),
+            icon: const Icon(Icons.person_outline, color: AppColors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const StudentProfileScreen(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+      body: child,
+    );
+  }
+
+  // --- STUDENT HAMBURGER MENU DRAWER (7 SECTIONS) ---
+  Widget _buildStudentDrawer(BuildContext context) {
+    final student = MockStudentService().getDemoStudentProfile();
+
+    return Drawer(
+      backgroundColor: AppColors.white,
+      child: Column(
+        children: [
+          // Student Profile Drawer Header
+          UserAccountsDrawerHeader(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.primaryPurple, AppColors.secondaryPurple],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            currentAccountPicture: Container(
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.gold, width: 2),
+              ),
+              child: ClipOval(
+                child: Padding(
+                  padding: const EdgeInsets.all(3.0),
+                  child: Image.asset(
+                    'assets/images/college_logo.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.school_rounded,
+                      size: 38,
+                      color: AppColors.primaryPurple,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            accountName: Text(
+              student.name,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: AppColors.white,
+              ),
+            ),
+            accountEmail: Text(
+              'Reg No: ${student.registerNumber} • Camp Champ Student',
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.gold,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+
+          // Menu Category Subtitle Banner
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: AppColors.primaryPurple.withValues(alpha: 0.06),
+            child: const Row(
+              children: [
+                Icon(Icons.menu_open_rounded, color: AppColors.primaryPurple, size: 18),
+                SizedBox(width: 8),
+                Text(
+                  'STUDENT MENU',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.primaryPurple,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+
+          // Exactly 7 Ordered Navigation Options
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              children: [
+                _buildDrawerTile(0, 'Dashboard', Icons.dashboard_rounded),
+                _buildDrawerTile(1, 'Circular', Icons.campaign_rounded),
+                _buildDrawerTile(2, 'Library', Icons.menu_book_rounded),
+                _buildDrawerTile(3, 'Academics', Icons.school_rounded),
+                _buildDrawerTile(4, 'Exams', Icons.assignment_turned_in_rounded),
+                _buildDrawerTile(5, 'Student Grievance', Icons.report_problem_rounded),
+                _buildDrawerTile(6, 'Settings', Icons.settings_rounded),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerTile(int index, String title, IconData icon) {
+    final isSelected = _currentIndex == index;
+    return ListTile(
+      dense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      leading: Icon(
+        icon,
+        color: isSelected ? AppColors.primaryPurple : AppColors.secondaryText,
+        size: 22,
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+          color: isSelected ? AppColors.primaryPurple : AppColors.darkText,
+        ),
+      ),
+      selected: isSelected,
+      selectedTileColor: AppColors.primaryPurple.withValues(alpha: 0.08),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      onTap: () {
+        setState(() {
+          _currentIndex = index;
+        });
+        Navigator.pop(context); // Close drawer on tap
+      },
+    );
+  }
+
+  // --- SECTION 0: STUDENT DASHBOARD HOME OVERVIEW ---
+  Widget _buildHomeDashboard(BuildContext context) {
+    final student = MockStudentService().getDemoStudentProfile();
+
+    return Scaffold(
+      backgroundColor: AppColors.lightBackground,
+      drawer: _buildStudentDrawer(context),
+      appBar: AppBar(
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu_rounded, color: AppColors.gold, size: 26),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              student.name,
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                color: AppColors.white,
+              ),
+            ),
+            Text(
+              '${student.year} • ${student.department}',
+              style: const TextStyle(fontSize: 10, color: AppColors.gold),
+            ),
+          ],
+        ),
+        backgroundColor: AppColors.primaryPurple,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined, color: AppColors.gold),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotificationsScreen(),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.person_outline, color: AppColors.white),
             onPressed: () {
               Navigator.push(
                 context,
@@ -136,7 +352,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Student Identity Banner
+              // 1. STUDENT IDENTITY BANNER
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
@@ -185,7 +401,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                             '${student.course} • ${student.year}',
                             style: const TextStyle(
                               color: AppColors.white,
-                              fontSize: 13,
+                              fontSize: 14,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -205,7 +421,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Overview Cards Grid
+              // 2. ACADEMIC & ATTENDANCE OVERVIEW METRICS
               const Text(
                 'ACADEMIC OVERVIEW',
                 style: TextStyle(
@@ -239,11 +455,11 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                const AcademicPerformanceScreen())),
+                    onTap: () {
+                      setState(() {
+                        _currentIndex = 3; // Switch to Academics tab
+                      });
+                    },
                     child: const StudentStatCard(
                       title: 'CIA PERFORMANCE',
                       value: '82%',
@@ -279,7 +495,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Quick Actions Directory
+              // 3. QUICK ACCESS DIRECTORY
               const Text(
                 'QUICK ACCESS',
                 style: TextStyle(
@@ -293,8 +509,8 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
 
               _buildQuickActionTile(
                 context,
-                title: 'Attendance Details',
-                subtitle: 'View subject-wise attendance & warnings',
+                title: 'Attendance Breakdown',
+                subtitle: 'View subject-wise attendance (87% Overall)',
                 icon: Icons.fact_check_outlined,
                 onTap: () => Navigator.push(
                     context,
@@ -304,19 +520,19 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
               const SizedBox(height: 10),
               _buildQuickActionTile(
                 context,
-                title: 'CIA Marks',
+                title: 'Academic Marks & CIA',
                 subtitle: 'View CIA 1, CIA 2, CIA 3 subject marks',
                 icon: Icons.grade_outlined,
-                onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            const AcademicPerformanceScreen())),
+                onTap: () {
+                  setState(() {
+                    _currentIndex = 3;
+                  });
+                },
               ),
               const SizedBox(height: 10),
               _buildQuickActionTile(
                 context,
-                title: 'Assignments & Questions',
+                title: 'Assignments & Submissions',
                 subtitle: 'View assigned questions and deadlines',
                 icon: Icons.assignment_turned_in_outlined,
                 onTap: () => Navigator.push(
@@ -327,35 +543,26 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
               const SizedBox(height: 10),
               _buildQuickActionTile(
                 context,
-                title: 'Online Classes',
-                subtitle: 'Join live virtual classroom meetings',
-                icon: Icons.videocam_outlined,
-                onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const OnlineClassesScreen())),
-              ),
-              const SizedBox(height: 10),
-              _buildQuickActionTile(
-                context,
-                title: 'My Timetable',
-                subtitle: 'View daily period schedule (Mon - Sat)',
-                icon: Icons.table_chart_outlined,
-                onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const TimetableScreen())),
-              ),
-              const SizedBox(height: 10),
-              _buildQuickActionTile(
-                context,
-                title: 'Exam Schedule',
+                title: 'Exam Schedule & Results',
                 subtitle: 'View upcoming CIA & Semester exam dates',
                 icon: Icons.event_note_outlined,
-                onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const ExamScheduleScreen())),
+                onTap: () {
+                  setState(() {
+                    _currentIndex = 4;
+                  });
+                },
+              ),
+              const SizedBox(height: 10),
+              _buildQuickActionTile(
+                context,
+                title: 'Grievance & AI Prediction',
+                subtitle: 'Submit query & view performance analysis',
+                icon: Icons.auto_awesome_outlined,
+                onTap: () {
+                  setState(() {
+                    _currentIndex = 5;
+                  });
+                },
               ),
               const SizedBox(height: 20),
             ],

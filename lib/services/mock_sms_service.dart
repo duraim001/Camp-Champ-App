@@ -69,7 +69,7 @@ class MockSmsService {
         teacherId: teacherId,
         subject: subject,
         date: date,
-        message: 'Dear Parent/Guardian, your ward ${s['studentName']} was marked absent for $subject on $date. - Smart SEC',
+        message: 'Dear Parent/Guardian, your ward ${s['studentName']} was marked absent for $subject on $date. - Camp Champ',
         status: SmsStatus.sent,
         sentAt: DateTime.now(),
       );

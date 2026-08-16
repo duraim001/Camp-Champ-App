@@ -12,7 +12,7 @@ import '../../features/student/presentation/screens/student_dashboard_screen.dar
 import '../../features/teacher/presentation/screens/teacher_dashboard_screen.dart';
 import '../../services/session_manager.dart';
 
-/// AppRoutes defines centralized route names and route generator for Smart SEC.
+/// AppRoutes defines centralized route names and route generator for Camp Champ.
 abstract class AppRoutes {
   static const String welcome = '/';
   static const String loginSelection = '/login-selection';

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../services/mock_teacher_service.dart';
-
+import '../../../admin/presentation/screens/admin_library_screen.dart';
+import '../../../admin/presentation/screens/admin_settings_screen.dart';
+import '../../../admin/presentation/screens/announcements_screen.dart';
 import '../../../parent/presentation/screens/parent_teacher_meetings_screen.dart';
 import 'class_details_screen.dart';
 import 'teacher_attendance_screen.dart';
+import 'teacher_exams_screen.dart';
+import 'teacher_grievance_screen.dart';
 import 'teacher_notifications_screen.dart';
 import 'teacher_parent_details_screen.dart';
 import 'teacher_profile_screen.dart';
@@ -23,12 +27,6 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> pages = [
-      _buildDashboardHome(),
-      _buildMyClassesTab(),
-      const TeacherAttendanceScreen(),
-    ];
-
     return PopScope(
       canPop: _currentIndex == 0,
       onPopInvokedWithResult: (didPop, result) {
@@ -41,82 +39,96 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
       },
       child: Scaffold(
         backgroundColor: AppColors.lightBackground,
-        body: pages[_currentIndex],
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primaryPurple.withValues(alpha: 0.1),
-                blurRadius: 10,
-                offset: const Offset(0, -2),
-              ),
-            ],
-          ),
-          child: BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: AppColors.white,
-            selectedItemColor: AppColors.primaryPurple,
-            unselectedItemColor: AppColors.secondaryText,
-            selectedLabelStyle:
-                const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
-            unselectedLabelStyle: const TextStyle(fontSize: 11),
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home_outlined),
-                activeIcon: Icon(Icons.home_rounded),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.class_outlined),
-                activeIcon: Icon(Icons.class_rounded),
-                label: 'Classes',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.fact_check_outlined),
-                activeIcon: Icon(Icons.fact_check_rounded),
-                label: 'Attendance',
-              ),
-            ],
-          ),
-        ),
+        drawer: _buildTeacherDrawer(context),
+        body: _buildPage(_currentIndex),
       ),
     );
   }
 
-  Widget _buildDashboardHome() {
+  // --- PAGE ROUTER FOR 7 TEACHER SECTIONS ---
+  Widget _buildPage(int index) {
+    switch (index) {
+      case 0:
+        return _buildDashboardHome();
+      case 1:
+        return _buildHeaderWrapper(
+          title: 'Attendance Marking',
+          subtitle: 'Student Attendance & Absent Alerts',
+          child: const TeacherAttendanceScreen(),
+        );
+      case 2:
+        return _buildHeaderWrapper(
+          title: 'Campus Circulars',
+          subtitle: 'Faculty Directives & Announcements',
+          child: const AnnouncementsScreen(),
+        );
+      case 3:
+        return _buildHeaderWrapper(
+          title: 'Faculty Library',
+          subtitle: 'Digital Book Catalog & Academic Resources',
+          child: const AdminLibraryScreen(),
+        );
+      case 4:
+        return _buildHeaderWrapper(
+          title: 'Examinations & Marks',
+          subtitle: 'Subject CIA Tests & Internal Marks',
+          child: const TeacherExamsScreen(),
+        );
+      case 5:
+        return _buildHeaderWrapper(
+          title: 'Student Grievance & AI Analysis',
+          subtitle: 'Grievance Redressal & Academic Prediction',
+          child: const TeacherGrievanceScreen(),
+        );
+      case 6:
+        return _buildHeaderWrapper(
+          title: 'Teacher Settings',
+          subtitle: 'Portal Preferences & Configurations',
+          child: const AdminSettingsScreen(),
+        );
+      default:
+        return _buildDashboardHome();
+    }
+  }
+
+  // --- HEADER WRAPPER FOR SECONDARY TEACHER SECTIONS ---
+  Widget _buildHeaderWrapper({
+    required String title,
+    required String subtitle,
+    required Widget child,
+  }) {
     const teacher = MockTeacherService.demoTeacher;
-    final isSaturday = DateTime.now().weekday == DateTime.saturday;
 
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
+      drawer: _buildTeacherDrawer(context),
       appBar: AppBar(
-        title: const Column(
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu_rounded, color: AppColors.gold, size: 26),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
+        ),
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Teacher Dashboard',
-              style: TextStyle(
-                fontSize: 18,
+              teacher.name,
+              style: const TextStyle(
+                fontSize: 17,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: AppColors.white,
               ),
             ),
             Text(
-              'Smart SEC Teacher Center',
-              style: TextStyle(fontSize: 11, color: AppColors.gold),
+              '${teacher.designation} • ${teacher.department}',
+              style: const TextStyle(fontSize: 10, color: AppColors.gold),
             ),
           ],
         ),
-        backgroundColor: AppColors.primaryPurple, // Smart SEC Primary Application Color
+        backgroundColor: AppColors.primaryPurple,
         elevation: 0,
         actions: [
-          // Notification Bell with Unread Indicator
           Stack(
             alignment: Alignment.center,
             children: [
@@ -149,7 +161,221 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                 ),
             ],
           ),
-          // Profile Action Icon at Top Right
+          IconButton(
+            icon: const Icon(Icons.person_outline, color: AppColors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const TeacherProfileScreen(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+      body: child,
+    );
+  }
+
+  // --- TEACHER HAMBURGER MENU DRAWER (7 SECTIONS) ---
+  Widget _buildTeacherDrawer(BuildContext context) {
+    const teacher = MockTeacherService.demoTeacher;
+
+    return Drawer(
+      backgroundColor: AppColors.white,
+      child: Column(
+        children: [
+          // Faculty Profile Header
+          UserAccountsDrawerHeader(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.primaryPurple, AppColors.secondaryPurple],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            currentAccountPicture: Container(
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.gold, width: 2),
+              ),
+              child: ClipOval(
+                child: Padding(
+                  padding: const EdgeInsets.all(3.0),
+                  child: Image.asset(
+                    'assets/images/college_logo.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.person_rounded,
+                      size: 38,
+                      color: AppColors.primaryPurple,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            accountName: Text(
+              teacher.name,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: AppColors.white,
+              ),
+            ),
+            accountEmail: Text(
+              '${teacher.designation} • Camp Champ Faculty',
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.gold,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+
+          // Category Banner
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: AppColors.primaryPurple.withValues(alpha: 0.06),
+            child: const Row(
+              children: [
+                Icon(Icons.menu_open_rounded, color: AppColors.primaryPurple, size: 18),
+                SizedBox(width: 8),
+                Text(
+                  'TEACHER MENU',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.primaryPurple,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+
+          // Exactly 7 Ordered Navigation Options
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              children: [
+                _buildDrawerTile(0, 'Dashboard', Icons.dashboard_rounded),
+                _buildDrawerTile(1, 'Attendance', Icons.fact_check_rounded),
+                _buildDrawerTile(2, 'Circular', Icons.campaign_rounded),
+                _buildDrawerTile(3, 'Library', Icons.menu_book_rounded),
+                _buildDrawerTile(4, 'Exams', Icons.assignment_turned_in_rounded),
+                _buildDrawerTile(5, 'Student Grievance', Icons.report_problem_rounded),
+                _buildDrawerTile(6, 'Settings', Icons.settings_rounded),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerTile(int index, String title, IconData icon) {
+    final isSelected = _currentIndex == index;
+    return ListTile(
+      dense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      leading: Icon(
+        icon,
+        color: isSelected ? AppColors.primaryPurple : AppColors.secondaryText,
+        size: 22,
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+          color: isSelected ? AppColors.primaryPurple : AppColors.darkText,
+        ),
+      ),
+      selected: isSelected,
+      selectedTileColor: AppColors.primaryPurple.withValues(alpha: 0.08),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      onTap: () {
+        setState(() {
+          _currentIndex = index;
+        });
+        Navigator.pop(context); // Close drawer
+      },
+    );
+  }
+
+  // --- SECTION 0: TEACHER DASHBOARD HOME ---
+  Widget _buildDashboardHome() {
+    const teacher = MockTeacherService.demoTeacher;
+    final isSaturday = DateTime.now().weekday == DateTime.saturday;
+
+    return Scaffold(
+      backgroundColor: AppColors.lightBackground,
+      drawer: _buildTeacherDrawer(context),
+      appBar: AppBar(
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu_rounded, color: AppColors.gold, size: 26),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              teacher.name,
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            Text(
+              '${teacher.designation} • ${teacher.department}',
+              style: const TextStyle(fontSize: 10, color: AppColors.gold),
+            ),
+          ],
+        ),
+        backgroundColor: AppColors.primaryPurple,
+        elevation: 0,
+        actions: [
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_outlined, color: AppColors.gold),
+                onPressed: () {
+                  setState(() {
+                    _hasUnreadNotifications = false;
+                  });
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const TeacherNotificationsScreen(),
+                    ),
+                  );
+                },
+              ),
+              if (_hasUnreadNotifications)
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Colors.redAccent,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
+          ),
           IconButton(
             icon: const Icon(Icons.person_outline, color: Colors.white),
             onPressed: () {
@@ -169,7 +395,7 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. FACULTY IDENTITY BANNER (Positioned down of the header)
+              // 1. FACULTY IDENTITY BANNER
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -398,121 +624,61 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         childAspectRatio: 2.1,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
                       ),
                       children: [
-                        _buildActionTile(
-                          title: '2nd YEAR',
-                          subtitle: '60 Students',
-                          icon: Icons.school_outlined,
-                          accentColor: AppColors.primaryPurple,
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ClassDetailsScreen(
-                                className: '2nd Year — Computer Science & Engineering',
-                                department: 'Computer Science & Engineering',
-                                year: '2nd Year',
-                                section: 'Section A',
-                                totalStudents: 60,
-                              ),
-                            ),
-                          ),
-                        ),
-                        _buildActionTile(
-                          title: '3rd YEAR',
-                          subtitle: '55 Students',
-                          icon: Icons.workspace_premium_outlined,
-                          accentColor: AppColors.secondaryPurple,
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ClassDetailsScreen(
-                                className: '3rd Year — Computer Science & Engineering',
-                                department: 'Computer Science & Engineering',
-                                year: '3rd Year',
-                                section: 'Section A',
-                                totalStudents: 55,
-                              ),
-                            ),
-                          ),
-                        ),
-                        _buildActionTile(
-                          title: '4th YEAR',
-                          subtitle: '48 Students',
-                          icon: Icons.stars_outlined,
-                          accentColor: const Color(0xFFD97706),
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ClassDetailsScreen(
-                                className: '4th Year — Computer Science & Engineering',
-                                department: 'Computer Science & Engineering',
-                                year: '4th Year',
-                                section: 'Section A',
-                                totalStudents: 48,
-                              ),
-                            ),
-                          ),
-                        ),
-                        _buildActionTile(
-                          title: 'ALL CLASSES',
-                          subtitle: '163 Students',
-                          icon: Icons.groups_outlined,
-                          accentColor: Colors.blueAccent,
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const TeacherStudentsScreen(),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    // 4. ACADEMIC ACTIONS SECTION (Horizontal Tile Cards Grid)
-                    const Text(
-                      'ACADEMIC ACTIONS',
-                      style: TextStyle(
-                        color: AppColors.primaryPurple,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    GridView(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 2.1,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                      ),
-                      children: [
-                        _buildActionTile(
-                          title: 'Student Details',
-                          subtitle: 'My Class Students',
-                          icon: Icons.person_search_rounded,
-                          accentColor: AppColors.primaryPurple,
+                        _buildFeatureCard(
+                          title: 'My Classes',
+                          subtitle: '3 Active Sections',
+                          icon: Icons.class_outlined,
+                          color: AppColors.primaryPurple,
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const TeacherStudentsScreen(),
+                                builder: (context) => const ClassDetailsScreen(
+                                  className: '2nd Year CSE',
+                                  department: 'Computer Science',
+                                  year: '2nd Year',
+                                  section: 'A',
+                                  totalStudents: 42,
+                                ),
                               ),
                             );
                           },
                         ),
-                        _buildActionTile(
-                          title: 'Parent Details',
-                          subtitle: 'Parent Directory',
-                          icon: Icons.family_restroom_rounded,
-                          accentColor: AppColors.secondaryPurple,
+                        _buildFeatureCard(
+                          title: 'Attendance',
+                          subtitle: 'Mark Daily Roll',
+                          icon: Icons.fact_check_outlined,
+                          color: AppColors.secondaryPurple,
+                          onTap: () {
+                            setState(() {
+                              _currentIndex = 1;
+                            });
+                          },
+                        ),
+                        _buildFeatureCard(
+                          title: 'Student Info',
+                          subtitle: '42 Registered Students',
+                          icon: Icons.people_outline,
+                          color: AppColors.primaryPurple,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const TeacherStudentsScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                        _buildFeatureCard(
+                          title: 'Parent Info',
+                          subtitle: 'Parent Contacts & Chat',
+                          icon: Icons.contact_phone_outlined,
+                          color: AppColors.gold,
                           onTap: () {
                             Navigator.push(
                               context,
@@ -523,35 +689,54 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                             );
                           },
                         ),
-                        _buildActionTile(
-                          title: 'P–T Meetings',
-                          subtitle: 'Schedule & Logs',
-                          icon: Icons.handshake_rounded,
-                          accentColor: const Color(0xFFD97706),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const ParentTeacherMeetingsScreen(),
-                              ),
-                            );
-                          },
+                      ],
+                    ),
+                    const SizedBox(height: 22),
+
+                    // 4. ACADEMICS & PARENT ENGAGEMENT
+                    const Text(
+                      'ACADEMICS & MEETINGS',
+                      style: TextStyle(
+                        color: AppColors.primaryPurple,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildFeatureCard(
+                            title: 'Exams & Marks',
+                            subtitle: 'CIA Tests & Exams',
+                            icon: Icons.assignment_outlined,
+                            color: AppColors.primaryPurple,
+                            onTap: () {
+                              setState(() {
+                                _currentIndex = 4;
+                              });
+                            },
+                          ),
                         ),
-                        _buildActionTile(
-                          title: 'Attendance',
-                          subtitle: 'Daily Register',
-                          icon: Icons.fact_check_rounded,
-                          accentColor: Colors.blueAccent,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const TeacherAttendanceScreen(),
-                              ),
-                            );
-                          },
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildFeatureCard(
+                            title: 'PT Meetings',
+                            subtitle: 'Schedule Meetings',
+                            icon: Icons.handshake_outlined,
+                            color: AppColors.secondaryPurple,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const ParentTeacherMeetingsScreen(),
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ],
                     ),
@@ -565,41 +750,49 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
     );
   }
 
-  Widget _buildActionTile({
+  Widget _buildFeatureCard({
     required String title,
     required String subtitle,
     required IconData icon,
-    required Color accentColor,
+    required Color color,
     required VoidCallback onTap,
   }) {
-    return Card(
-      elevation: 1.5,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: BorderSide(
-          color: AppColors.primaryPurple.withValues(alpha: 0.12),
-        ),
-      ),
+    return Material(
+      color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(14),
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: color.withValues(alpha: 0.15),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.12),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   icon,
-                  color: accentColor,
+                  color: color,
                   size: 20,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -607,135 +800,28 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                   children: [
                     Text(
                       title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.primaryPurple,
+                        color: AppColors.darkText,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 10,
-                        fontWeight: FontWeight.w600,
                         color: AppColors.secondaryText,
+                        fontWeight: FontWeight.w500,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMyClassesTab() {
-    return Scaffold(
-      backgroundColor: AppColors.lightBackground,
-      appBar: AppBar(
-        title: const Text('My Classes'),
-        backgroundColor: AppColors.primaryPurple,
-        elevation: 0,
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              _buildClassListTile(
-                context,
-                year: '2nd Year',
-                section: 'Section A',
-                subject: 'Data Structures',
-                students: 60,
-              ),
-              const SizedBox(height: 10),
-              _buildClassListTile(
-                context,
-                year: '3rd Year',
-                section: 'Section A',
-                subject: 'Database Systems',
-                students: 55,
-              ),
-              const SizedBox(height: 10),
-              _buildClassListTile(
-                context,
-                year: '4th Year',
-                section: 'Section A',
-                subject: 'Software Engineering',
-                students: 48,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildClassListTile(
-    BuildContext context, {
-    required String year,
-    required String section,
-    required String subject,
-    required int students,
-  }) {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: AppColors.primaryPurple.withValues(alpha: 0.12),
-        ),
-      ),
-      child: ListTile(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ClassDetailsScreen(
-                className: '$year — Computer Science & Engineering',
-                department: 'Computer Science & Engineering',
-                year: year,
-                section: section,
-                totalStudents: students,
-              ),
-            ),
-          );
-        },
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.primaryPurple.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Icon(
-            Icons.class_outlined,
-            color: AppColors.primaryPurple,
-            size: 22,
-          ),
-        ),
-        title: Text(
-          '$year  •  $section',
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: AppColors.primaryPurple,
-          ),
-        ),
-        subtitle: Text(
-          '$subject  •  $students Students',
-          style: const TextStyle(fontSize: 11),
-        ),
-        trailing: const Icon(
-          Icons.arrow_forward_ios_rounded,
-          size: 14,
-          color: AppColors.secondaryText,
         ),
       ),
     );
