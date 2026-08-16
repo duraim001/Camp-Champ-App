@@ -16,6 +16,7 @@ import 'department_management_screen.dart';
 import 'parent_management_screen.dart';
 import 'student_management_screen.dart';
 import 'teacher_management_screen.dart';
+import 'faculty_requests_screen.dart';
 import '../widgets/admin_stat_card.dart';
 import '../widgets/management_card.dart';
 
@@ -576,6 +577,27 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             ),
                           ),
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ManagementCard(
+                            title: 'Faculty Requests',
+                            description: 'Approve / Reject Requests',
+                            icon: Icons.how_to_reg_outlined,
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const FacultyRequestsScreen(),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        const Expanded(child: SizedBox()),
                       ],
                     ),
 

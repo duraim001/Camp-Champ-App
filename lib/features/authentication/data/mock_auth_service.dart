@@ -1,4 +1,5 @@
 import '../../../services/session_manager.dart';
+import '../../../services/faculty_request_service.dart';
 
 enum UserRole {
   admin,
@@ -72,8 +73,11 @@ class MockAuthService {
       if ((trimmedUsername == 'SEC-ADM-001' || trimmedUsername == 'admin@smartsec.demo') && trimmedPassword == 'Admin@123') {
         SessionManager().setUserSession(UserRole.admin, trimmedUsername);
         return {'success': true, 'error': null};
+      } else if (trimmedUsername == 'santhipriyahod@gmail.com' && trimmedPassword == 'aidshodadmin') {
+        SessionManager().setUserSession(UserRole.admin, trimmedUsername);
+        return {'success': true, 'error': null};
       } else {
-        return {'success': false, 'error': 'Invalid demo credentials. Use Admin ID: SEC-ADM-001 & Password: Admin@123'};
+        return {'success': false, 'error': 'Invalid credentials. Use santhipriyahod@gmail.com & Password: aidshodadmin or SEC-ADM-001 & Admin@123'};
       }
     }
 
@@ -87,14 +91,30 @@ class MockAuthService {
       }
     }
 
-    // Teacher Demo Check
+    // Teacher Login & Status Check
     if (role == UserRole.teacher) {
+      // Check registered faculty account request status first
+      final facultyAuth = await FacultyRequestService().authenticateTeacher(
+        username: trimmedUsername,
+        password: trimmedPassword,
+      );
+
+      if (facultyAuth['success'] == true) {
+        final userId = facultyAuth['userId'] ?? trimmedUsername;
+        SessionManager().setUserSession(UserRole.teacher, userId);
+        return {'success': true, 'error': null};
+      } else if (facultyAuth['status'] != null) {
+        // Return status-specific error (PENDING, REJECTED)
+        return {'success': false, 'error': facultyAuth['error']};
+      }
+
+      // Legacy fallback for SEC-TCH-001 demo if applicable
       if (trimmedUsername == 'SEC-TCH-001' && trimmedPassword == 'Teacher@123') {
         SessionManager().setUserSession(UserRole.teacher, 'SEC-TCH-001');
         return {'success': true, 'error': null};
-      } else {
-        return {'success': false, 'error': 'Invalid demo credentials. Use Teacher ID: SEC-TCH-001 & Password: Teacher@123'};
       }
+
+      return {'success': false, 'error': facultyAuth['error'] ?? 'Invalid username or password.'};
     }
 
     // Parent Demo Check

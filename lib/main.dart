@@ -2,8 +2,15 @@ import 'package:flutter/material.dart';
 import 'core/routes/app_routes.dart';
 import 'core/theme/app_theme.dart';
 
-void main() {
+import 'core/config/supabase_config.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await SupabaseConfig.initialize();
+  } catch (e) {
+    debugPrint('Supabase initialization warning: $e');
+  }
   runApp(const SmartSecApp());
 }
 
