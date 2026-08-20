@@ -410,13 +410,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         children: [
                           const Row(
                             children: [
-                              Text(
-                                'SYSTEM CONTROL CENTER',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.gold,
-                                  letterSpacing: 1.2,
+                              Flexible(
+                                child: Text(
+                                  'SYSTEM CONTROL CENTER',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.gold,
+                                    letterSpacing: 1.2,
+                                  ),
                                 ),
                               ),
                               SizedBox(width: 6),
@@ -427,6 +431,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           const SizedBox(height: 2),
                           Text(
                             admin.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w900,
@@ -437,12 +443,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           const SizedBox(height: 2),
                           Row(
                             children: [
-                              Text(
-                                admin.designation,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.white.withValues(alpha: 0.9),
+                              Flexible(
+                                child: Text(
+                                  admin.designation,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.white.withValues(alpha: 0.9),
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -455,13 +465,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              const Text(
-                                'CAMPUS ADMIN',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.gold,
-                                  letterSpacing: 0.5,
+                              const Flexible(
+                                child: Text(
+                                  'CAMPUS ADMIN',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.gold,
+                                    letterSpacing: 0.5,
+                                  ),
                                 ),
                               ),
                             ],
@@ -483,14 +497,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Primary Administration',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primaryPurple,
+                        const Flexible(
+                          child: Text(
+                            'Primary Administration',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryPurple,
+                            ),
                           ),
                         ),
+                        const SizedBox(width: 4),
                         TextButton.icon(
                           onPressed: () {
                             setState(() {
@@ -683,21 +702,28 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Row(
-                                children: [
-                                  Icon(Icons.fact_check_rounded,
-                                      color: AppColors.primaryPurple, size: 20),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    "Today's Attendance Summary",
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.primaryPurple,
+                              const Expanded(
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.fact_check_rounded,
+                                        color: AppColors.primaryPurple, size: 20),
+                                    SizedBox(width: 8),
+                                    Flexible(
+                                      child: Text(
+                                        "Today's Attendance Summary",
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.primaryPurple,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
+                              const SizedBox(width: 6),
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 3),
@@ -832,14 +858,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Department Breakdown',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primaryPurple,
+                        const Flexible(
+                          child: Text(
+                            'Department Breakdown',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryPurple,
+                            ),
                           ),
                         ),
+                        const SizedBox(width: 4),
                         TextButton.icon(
                           onPressed: () {
                             Navigator.push(
@@ -933,47 +964,57 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                         const SizedBox(height: 8),
                                         Row(
                                           children: [
-                                            const Icon(
-                                              Icons.school_outlined,
-                                              size: 13,
-                                              color: AppColors.secondaryText,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            const Text(
-                                              'Students: ',
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                color: AppColors.secondaryText,
-                                              ),
-                                            ),
-                                            Text(
-                                              '${dept.studentCount}',
-                                              style: const TextStyle(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.bold,
-                                                color: AppColors.darkText,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 18),
-                                            const Icon(
-                                              Icons.badge_outlined,
-                                              size: 13,
-                                              color: AppColors.secondaryText,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            const Text(
-                                              'Teachers: ',
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                color: AppColors.secondaryText,
-                                              ),
-                                            ),
-                                            Text(
-                                              '${dept.teacherCount}',
-                                              style: const TextStyle(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.bold,
-                                                color: AppColors.darkText,
+                                            Flexible(
+                                              child: FittedBox(
+                                                fit: BoxFit.scaleDown,
+                                                alignment: Alignment.centerLeft,
+                                                child: Row(
+                                                  children: [
+                                                    const Icon(
+                                                      Icons.school_outlined,
+                                                      size: 13,
+                                                      color: AppColors.secondaryText,
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    const Text(
+                                                      'Students: ',
+                                                      style: TextStyle(
+                                                        fontSize: 11,
+                                                        color: AppColors.secondaryText,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      '${dept.studentCount}',
+                                                      style: const TextStyle(
+                                                        fontSize: 11,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: AppColors.darkText,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 14),
+                                                    const Icon(
+                                                      Icons.badge_outlined,
+                                                      size: 13,
+                                                      color: AppColors.secondaryText,
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    const Text(
+                                                      'Teachers: ',
+                                                      style: TextStyle(
+                                                        fontSize: 11,
+                                                        color: AppColors.secondaryText,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      '${dept.teacherCount}',
+                                                      style: const TextStyle(
+                                                        fontSize: 11,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: AppColors.darkText,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
                                             ),
                                           ],

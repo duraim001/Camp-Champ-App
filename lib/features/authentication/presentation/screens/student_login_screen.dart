@@ -226,18 +226,23 @@ class _StudentLoginScreenState extends State<StudentLoginScreen> {
                 ),
                 child: Column(
                   children: [
-                    const Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.stars_rounded, color: AppColors.primaryPurple, size: 20),
-                        SizedBox(width: 8),
-                        Text(
-                          'DEMO STUDENT ACCOUNT',
-                          style: TextStyle(
-                            color: AppColors.primaryPurple,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                            letterSpacing: 1.0,
+                        const Icon(Icons.stars_rounded, color: AppColors.primaryPurple, size: 20),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: const Text(
+                              'DEMO STUDENT ACCOUNT',
+                              style: TextStyle(
+                                color: AppColors.primaryPurple,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
                           ),
                         ),
                       ],

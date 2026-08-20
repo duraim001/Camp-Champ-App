@@ -276,6 +276,7 @@ class _FacultyRegistrationScreenState extends State<FacultyRegistrationScreen> {
                 const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
                   initialValue: _selectedDesignation,
+                  isExpanded: true,
                   decoration: _inputDecoration(Icons.workspace_premium_outlined),
                   items: _designations.map((desig) => DropdownMenuItem(
                     value: desig,
@@ -390,12 +391,16 @@ class _FacultyRegistrationScreenState extends State<FacultyRegistrationScreen> {
       children: [
         Icon(icon, color: AppColors.primaryPurple, size: 20),
         const SizedBox(width: 8),
-        Text(
-          title,
-          style: const TextStyle(
-            color: AppColors.primaryPurple,
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
+        Flexible(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: AppColors.primaryPurple,
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         const SizedBox(width: 10),

@@ -126,18 +126,23 @@ class _ParentLoginScreenState extends State<ParentLoginScreen> {
                 ),
                 child: Column(
                   children: [
-                    const Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.stars_rounded, color: AppColors.primaryPurple, size: 20),
-                        SizedBox(width: 8),
-                        Text(
-                          'DEMO PARENT ACCOUNT',
-                          style: TextStyle(
-                            color: AppColors.primaryPurple,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                            letterSpacing: 1.0,
+                        const Icon(Icons.stars_rounded, color: AppColors.primaryPurple, size: 20),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: const Text(
+                              'DEMO PARENT ACCOUNT',
+                              style: TextStyle(
+                                color: AppColors.primaryPurple,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -168,13 +173,16 @@ class _ParentLoginScreenState extends State<ParentLoginScreen> {
                                 ),
                               )
                             : const Icon(Icons.flash_on_rounded, color: AppColors.primaryPurple, size: 18),
-                        label: Text(
-                          _isDemoLoggingIn ? 'Signing in as Parent...' : 'LOGIN WITH DEMO ACCOUNT',
-                          style: const TextStyle(
-                            color: AppColors.primaryPurple,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 13,
-                            letterSpacing: 0.5,
+                        label: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            _isDemoLoggingIn ? 'Signing in as Parent...' : 'LOGIN WITH DEMO ACCOUNT',
+                            style: const TextStyle(
+                              color: AppColors.primaryPurple,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 13,
+                              letterSpacing: 0.5,
+                            ),
                           ),
                         ),
                         style: ElevatedButton.styleFrom(

@@ -427,6 +427,8 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                         children: [
                           Text(
                             'STUDENT: ${_selectedChild.name.toUpperCase()}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               color: AppColors.gold,
                               fontSize: 12,
@@ -437,6 +439,8 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                           const SizedBox(height: 2),
                           Text(
                             'Reg: ${_selectedChild.registerNumber} • ${_selectedChild.department}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               color: AppColors.white,
                               fontSize: 13,
@@ -446,6 +450,8 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                           const SizedBox(height: 2),
                           Text(
                             '${_selectedChild.year} (Sec ${_selectedChild.section}) • Semester ${_selectedChild.semester}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(color: Colors.white70, fontSize: 11),
                           ),
                         ],
@@ -525,12 +531,31 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Total: $formattedTotal',
-                              style: const TextStyle(fontSize: 11, color: AppColors.darkText)),
-                          Text('Paid: $formattedPaid',
-                              style: const TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.bold)),
-                          const Text('Due: 30 Sep 2026',
-                              style: TextStyle(fontSize: 11, color: AppColors.secondaryText)),
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text('Total: $formattedTotal',
+                                  style: const TextStyle(fontSize: 11, color: AppColors.darkText)),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text('Paid: $formattedPaid',
+                                  style: const TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerRight,
+                              child: Text('Due: 30 Sep 2026',
+                                  style: TextStyle(fontSize: 11, color: AppColors.secondaryText)),
+                            ),
+                          ),
                         ],
                       ),
                       if (hasPending) ...[

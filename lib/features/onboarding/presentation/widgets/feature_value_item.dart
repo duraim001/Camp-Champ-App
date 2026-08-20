@@ -33,13 +33,16 @@ class FeatureValueItem extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         // Feature Title
-        Text(
-          data.label,
-          style: const TextStyle(
-            color: AppColors.primaryPurple,
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.8,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            data.label,
+            style: const TextStyle(
+              color: AppColors.primaryPurple,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.8,
+            ),
           ),
         ),
       ],
@@ -73,9 +76,10 @@ class FeatureValuesRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: features
-            .map((feature) => FeatureValueItem(data: feature))
+            .map((feature) => Flexible(child: FeatureValueItem(data: feature)))
             .toList(),
       ),
     );
   }
 }
+

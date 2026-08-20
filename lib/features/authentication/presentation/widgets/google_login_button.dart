@@ -75,12 +75,17 @@ class GoogleLoginButton extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            const Text(
-              'Continue with Google',
-              style: TextStyle(
-                color: AppColors.darkText,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+            const Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  'Continue with Google',
+                  style: TextStyle(
+                    color: AppColors.darkText,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ),
           ],

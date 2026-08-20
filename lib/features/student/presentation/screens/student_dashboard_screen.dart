@@ -437,7 +437,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  childAspectRatio: 2.2,
+                  mainAxisExtent: 82,
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
                 ),
