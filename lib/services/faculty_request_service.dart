@@ -5,6 +5,8 @@ import '../core/config/supabase_config.dart';
 import '../models/faculty_account_request.dart';
 import '../models/teacher.dart';
 import 'mock_teacher_service.dart';
+import 'api_client.dart';
+import 'session_manager.dart';
 
 class FacultyRequestService {
   static final FacultyRequestService _instance = FacultyRequestService._internal();
@@ -38,18 +40,18 @@ class FacultyRequestService {
       final cleanUsername = username.trim();
       final cleanDegree = degree.trim().isNotEmpty ? degree.trim() : 'M.Tech';
 
-      // Uniqueness check across local and remote
-      final existingLocal = _localRequests.any(
-        (r) => r.username.toLowerCase() == cleanUsername.toLowerCase() ||
-               r.employeeId.toUpperCase() == cleanEmployeeId,
+      // 1. Try submitting through FastAPI backend
+      final apiResult = await ApiClient().registerFaculty(
+        fullName: fullName.trim(),
+        email: cleanEmail,
+        phone: cleanPhone,
+        employeeId: cleanEmployeeId,
+        department: department.trim(),
+        designation: designation.trim(),
+        degree: cleanDegree,
+        username: cleanUsername,
+        password: password,
       );
-
-      if (existingLocal) {
-        return {
-          'success': false,
-          'error': 'Username or Employee ID already has a pending/existing request.'
-        };
-      }
 
       final passwordHash = hashPassword(password);
       final newRequest = FacultyAccountRequestModel(
@@ -67,14 +69,18 @@ class FacultyRequestService {
         requestedAt: DateTime.now(),
       );
 
-      // Save to local cache
+      // Save locally and sync to Supabase database
+      _localRequests.removeWhere((r) => r.employeeId == cleanEmployeeId || r.username == cleanUsername);
       _localRequests.insert(0, newRequest);
 
-      // Save to Supabase DB if accessible
       try {
-        await SupabaseConfig.client.from('faculty_account_requests').insert(newRequest.toJson());
+        await SupabaseConfig.client.from('faculty_account_requests').upsert(newRequest.toJson());
       } catch (e) {
         debugPrint('Supabase insert faculty request warning: $e');
+      }
+
+      if (apiResult['success'] == true) {
+        return {'success': true, 'request': newRequest, 'api': apiResult};
       }
 
       return {'success': true, 'request': newRequest};
@@ -87,6 +93,25 @@ class FacultyRequestService {
   Future<List<FacultyAccountRequestModel>> fetchRequests({String statusFilter = 'ALL'}) async {
     List<FacultyAccountRequestModel> requests = List.from(_localRequests);
 
+    // 1. Try fetching from FastAPI backend
+    try {
+      final apiData = await ApiClient().getFacultyRequests(statusFilter: statusFilter);
+      if (apiData != null && apiData.isNotEmpty) {
+        for (var item in apiData) {
+          final req = FacultyAccountRequestModel.fromJson(item as Map<String, dynamic>);
+          if (!requests.any((r) => r.id == req.id || r.employeeId == req.employeeId)) {
+            requests.add(req);
+          } else {
+            final idx = requests.indexWhere((r) => r.id == req.id || r.employeeId == req.employeeId);
+            if (idx != -1) requests[idx] = req;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching requests from API: $e');
+    }
+
+    // 2. Query Supabase PostgreSQL
     try {
       var query = SupabaseConfig.client.from('faculty_account_requests').select('*');
       if (statusFilter != 'ALL') {
@@ -97,14 +122,16 @@ class FacultyRequestService {
       
       final remoteRequests = data.map((json) => FacultyAccountRequestModel.fromJson(json)).toList();
 
-      // Merge remote requests without duplicates
       for (var r in remoteRequests) {
         if (!requests.any((req) => req.id == r.id || req.employeeId == r.employeeId)) {
           requests.add(r);
+        } else {
+          final idx = requests.indexWhere((req) => req.id == r.id || req.employeeId == r.employeeId);
+          if (idx != -1) requests[idx] = r;
         }
       }
-    } catch (e) {
-      debugPrint('Error fetching faculty requests from Supabase: $e');
+    } catch (_) {
+      // Handled via backend API and local store
     }
 
     if (statusFilter == 'ALL') {
@@ -119,6 +146,10 @@ class FacultyRequestService {
     required String adminId,
   }) async {
     try {
+      // 1. Send approval transaction to FastAPI REST backend
+      final apiResult = await ApiClient().approveFacultyRequest(requestId);
+
+      // 2. Find request target
       final index = _localRequests.indexWhere((r) => r.id == requestId);
       FacultyAccountRequestModel? targetRequest;
 
@@ -129,20 +160,30 @@ class FacultyRequestService {
           reviewedBy: adminId,
         );
         _localRequests[index] = targetRequest;
+      } else {
+        final allReqs = await fetchRequests();
+        final found = allReqs.where((r) => r.id == requestId).toList();
+        if (found.isNotEmpty) {
+          targetRequest = found.first.copyWith(
+            status: 'APPROVED',
+            reviewedAt: DateTime.now(),
+            reviewedBy: adminId,
+          );
+        }
       }
 
-      // Supabase update
+      // 3. Supabase update
       try {
         await SupabaseConfig.client.from('faculty_account_requests').update({
           'status': 'APPROVED',
           'reviewed_at': DateTime.now().toIso8601String(),
           'reviewed_by': adminId,
         }).eq('id', requestId);
-      } catch (e) {
-        debugPrint('Supabase approve request error: $e');
+      } catch (_) {
+        // Ignored if table not initialized on remote Supabase
       }
 
-      // Create active teacher account
+      // 4. Create active permanent teacher account
       if (targetRequest != null) {
         final newTeacher = TeacherModel(
           id: targetRequest.employeeId,
@@ -169,7 +210,6 @@ class FacultyRequestService {
             'faculty_id': newTeacher.facultyId,
             'department': newTeacher.department,
             'designation': newTeacher.designation,
-            'degree': newTeacher.degree,
             'email': newTeacher.email,
             'phone': newTeacher.phone,
             'college': newTeacher.college,
@@ -177,11 +217,15 @@ class FacultyRequestService {
             'status': 'Active',
           });
         } catch (e) {
-          debugPrint('Supabase teacher insert error: $e');
+          debugPrint('Supabase teacher insert note: $e');
         }
       }
 
-      return {'success': true, 'message': 'Faculty account approved successfully.'};
+      return {
+        'success': true, 
+        'message': 'Faculty account approved and created successfully',
+        'api': apiResult
+      };
     } catch (e) {
       return {'success': false, 'error': e.toString()};
     }
@@ -194,6 +238,8 @@ class FacultyRequestService {
     required String reason,
   }) async {
     try {
+      await ApiClient().rejectFacultyRequest(requestId, reason: reason);
+
       final index = _localRequests.indexWhere((r) => r.id == requestId);
       if (index != -1) {
         _localRequests[index] = _localRequests[index].copyWith(
@@ -228,9 +274,75 @@ class FacultyRequestService {
     required String password,
   }) async {
     final cleanUsername = username.trim();
-    final inputHash = hashPassword(password.trim());
 
-    // Search local requests first
+    // 1. Try FastAPI REST API Login
+    try {
+      final loginRes = await ApiClient().login(
+        username: cleanUsername,
+        password: password.trim(),
+      );
+
+      if (loginRes['success'] == true && loginRes['user'] != null) {
+        final userData = loginRes['user'];
+        final teacherName = userData['name'] ?? cleanUsername;
+        final dept = userData['department'] ?? 'AI&DS';
+        final desig = userData['designation'] ?? 'Assistant Professor';
+        final deg = userData['degree'] ?? 'M.Tech';
+        final empId = userData['employee_id'] ?? cleanUsername;
+
+        final teacher = TeacherModel(
+          id: empId,
+          name: teacherName,
+          facultyId: empId,
+          department: dept,
+          designation: desig,
+          degree: deg,
+          classAdvisor: '$dept Advisor',
+          subjects: ['Core Engineering', 'Advanced Topics'],
+          email: userData['email'] ?? '$cleanUsername@sengunthar.ac.in',
+          phone: '+91 90000 00002',
+          college: 'Sengunthar Engineering College',
+          location: 'Tiruchengode, Tamil Nadu',
+          isPresent: true,
+          attendancePercentage: 96.5,
+          status: 'Active',
+        );
+
+        MockTeacherService().registerTeacher(teacher);
+        SessionManager().setUser(
+          role: 'Teacher',
+          name: teacher.name,
+          username: cleanUsername,
+          token: loginRes['token'],
+        );
+
+        return {
+          'success': true,
+          'status': 'APPROVED',
+          'userId': empId,
+          'facultyName': teacher.name,
+          'request': FacultyAccountRequestModel(
+            id: empId,
+            fullName: teacher.name,
+            email: teacher.email,
+            phone: teacher.phone,
+            employeeId: empId,
+            department: dept,
+            designation: desig,
+            degree: deg,
+            username: cleanUsername,
+            passwordHash: '',
+            status: 'APPROVED',
+            requestedAt: DateTime.now(),
+          ),
+          'teacher': teacher,
+        };
+      }
+    } catch (e) {
+      debugPrint('FastAPI login check error: $e');
+    }
+
+    // 2. Search local and Supabase DB
     FacultyAccountRequestModel? match;
     try {
       match = _localRequests.firstWhere(
@@ -242,7 +354,6 @@ class FacultyRequestService {
       match = null;
     }
 
-    // If not found locally, query Supabase
     if (match == null) {
       try {
         final response = await SupabaseConfig.client
@@ -263,69 +374,68 @@ class FacultyRequestService {
     if (match == null) {
       return {
         'success': false,
-        'error': 'Invalid username or password.'
+        'status': 'NOT_FOUND',
+        'error': 'No faculty account or registration request found for this username.',
       };
     }
 
-    // Verify password hash
-    if (match.passwordHash != inputHash) {
+    final inputHash = hashPassword(password.trim());
+    if (match.passwordHash.isNotEmpty && match.passwordHash != inputHash) {
       return {
         'success': false,
-        'error': 'Invalid username or password.'
+        'status': 'INVALID_PASSWORD',
+        'error': 'Incorrect password. Please try again.',
       };
     }
 
-    // Verify Account Status
-    if (match.status == 'PENDING') {
+    if (match.status.toUpperCase() == 'PENDING') {
       return {
         'success': false,
         'status': 'PENDING',
-        'error': 'Your faculty account is waiting for Admin approval.'
+        'error': 'Your faculty account request is pending administrative approval.',
       };
     }
 
-    if (match.status == 'REJECTED') {
-      final reasonStr = (match.rejectionReason != null && match.rejectionReason!.isNotEmpty)
-          ? ' Reason: ${match.rejectionReason}'
-          : '';
+    if (match.status.toUpperCase() == 'REJECTED') {
       return {
         'success': false,
         'status': 'REJECTED',
-        'error': 'Your faculty account request was rejected.$reasonStr'
+        'error': 'Your request was rejected. Reason: ${match.rejectionReason ?? "Does not meet criteria"}',
       };
     }
 
-    if (match.status == 'APPROVED') {
-      final teacher = TeacherModel(
-        id: match.employeeId,
-        name: match.fullName,
-        facultyId: match.employeeId,
-        department: match.department,
-        designation: match.designation,
-        degree: match.degree,
-        classAdvisor: '${match.department} Advisor',
-        subjects: ['Core Engineering', 'Advanced Topics'],
-        email: match.email,
-        phone: match.phone,
-        college: 'Sengunthar Engineering College',
-        location: 'Tiruchengode, Tamil Nadu',
-        status: 'Active',
-      );
-      MockTeacherService().registerTeacher(teacher);
+    final teacher = TeacherModel(
+      id: match.employeeId,
+      name: match.fullName,
+      facultyId: match.employeeId,
+      department: match.department,
+      designation: match.designation,
+      degree: match.degree,
+      classAdvisor: '${match.department} Advisor',
+      subjects: ['Core Engineering', 'Advanced Topics'],
+      email: match.email,
+      phone: match.phone,
+      college: 'Sengunthar Engineering College',
+      location: 'Tiruchengode, Tamil Nadu',
+      isPresent: true,
+      attendancePercentage: 96.5,
+      status: 'Active',
+    );
 
-      return {
-        'success': true,
-        'status': 'APPROVED',
-        'userId': match.employeeId,
-        'facultyName': match.fullName,
-        'teacher': teacher,
-      };
-    }
+    MockTeacherService().registerTeacher(teacher);
+    SessionManager().setUser(
+      role: 'Teacher',
+      name: teacher.name,
+      username: cleanUsername,
+    );
 
     return {
-      'success': false,
-      'error': 'Invalid username or password.'
+      'success': true,
+      'status': 'APPROVED',
+      'userId': match.employeeId,
+      'facultyName': match.fullName,
+      'request': match,
+      'teacher': teacher,
     };
   }
 }
-

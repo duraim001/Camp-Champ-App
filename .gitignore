@@ -3,6 +3,9 @@
 *.log
 *.pyc
 *.swp
+*.db
+__pycache__/
+.env
 .DS_Store
 .atom/
 .build/

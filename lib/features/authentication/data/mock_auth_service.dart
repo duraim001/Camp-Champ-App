@@ -117,36 +117,47 @@ class MockAuthService {
       final lowerUser = trimmedUsername.toLowerCase();
       final isDemoTeacher = lowerUser == 'sec-tch-001' ||
           lowerUser == 'teacher@smartsec.demo' ||
-          lowerUser == 'karthik@smartsec.demo' ||
           lowerUser == 'teacher';
       final isDemoPassword = trimmedPassword == 'Teacher@123' ||
           trimmedPassword == 'teacher123' ||
           trimmedPassword == 'Teacher123';
 
       if (isDemoTeacher && isDemoPassword) {
+        SessionManager().setUser(
+          role: 'Teacher',
+          name: 'Mr. M. Preamkumar',
+          username: 'SEC-TCH-001',
+        );
         SessionManager().setUserSession(UserRole.teacher, 'SEC-TCH-001');
         return {'success': true, 'error': null};
       }
 
-      // Check registered faculty account request status first
+      // Authenticate against FastAPI backend / Supabase PostgreSQL
       final facultyAuth = await FacultyRequestService().authenticateTeacher(
         username: trimmedUsername,
         password: trimmedPassword,
       );
 
       if (facultyAuth['success'] == true) {
-        final userId = facultyAuth['userId'] ?? trimmedUsername;
+        final teacher = facultyAuth['teacher'];
+        final teacherName = teacher?.name ?? trimmedUsername;
+        final userId = facultyAuth['userId'] ?? teacher?.facultyId ?? trimmedUsername;
+        SessionManager().setUser(
+          role: 'Teacher',
+          name: teacherName,
+          username: trimmedUsername,
+        );
         SessionManager().setUserSession(UserRole.teacher, userId);
-        return {'success': true, 'error': null};
+        return {'success': true, 'error': null, 'userId': userId};
       } else if (facultyAuth['status'] != null) {
-        // Return status-specific error (PENDING, REJECTED)
+        // Return status-specific error (PENDING, REJECTED, INVALID_PASSWORD)
         return {'success': false, 'error': facultyAuth['error']};
       }
 
       return {
         'success': false,
         'error': facultyAuth['error'] ??
-            'Invalid teacher credentials. Use Teacher ID: SEC-TCH-001 & Password: Teacher@123'
+            'Invalid teacher credentials. Please check your username/password or registration status.'
       };
     }
 

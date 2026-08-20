@@ -7,19 +7,48 @@ class SessionManager {
 
   UserRole? _currentRole;
   String? _currentUserId;
+  String? _userName;
+  String? _token;
 
   UserRole? get currentRole => _currentRole;
   String? get currentUserId => _currentUserId;
+  String? get userName => _userName;
+  String? get token => _token;
   bool get isLoggedIn => _currentRole != null;
 
-  void setUserSession(UserRole role, String userId) {
+  void setUserSession(UserRole role, String userId, {String? name, String? token}) {
     _currentRole = role;
     _currentUserId = userId;
+    if (name != null) _userName = name;
+    if (token != null) _token = token;
+  }
+
+  void setUser({required String role, required String name, required String username, String? token}) {
+    UserRole parsedRole = UserRole.teacher;
+    switch (role.toLowerCase()) {
+      case 'admin':
+        parsedRole = UserRole.admin;
+        break;
+      case 'student':
+        parsedRole = UserRole.student;
+        break;
+      case 'parent':
+        parsedRole = UserRole.parent;
+        break;
+      default:
+        parsedRole = UserRole.teacher;
+    }
+    _currentRole = parsedRole;
+    _currentUserId = username;
+    _userName = name;
+    if (token != null) _token = token;
   }
 
   void clearSession() {
     _currentRole = null;
     _currentUserId = null;
+    _userName = null;
+    _token = null;
   }
 
   bool canAccessAdminRoutes() {

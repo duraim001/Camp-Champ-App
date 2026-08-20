@@ -10,6 +10,32 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ------------------------------------------
+-- 0.1 DEPARTMENTS TABLE
+-- ------------------------------------------
+CREATE TABLE IF NOT EXISTS public.departments (
+    id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL,
+    code TEXT UNIQUE NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ------------------------------------------
+-- 0.2 USERS TABLE (CENTRAL AUTHENTICATION)
+-- ------------------------------------------
+CREATE TABLE IF NOT EXISTS public.users (
+    id SERIAL PRIMARY KEY,
+    username TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    role TEXT NOT NULL DEFAULT 'TEACHER', -- 'ADMIN', 'TEACHER', 'STUDENT', 'PARENT'
+    department_id INTEGER REFERENCES public.departments(id) ON DELETE SET NULL,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ------------------------------------------
 -- 1. STUDENTS TABLE
 -- ------------------------------------------
 CREATE TABLE IF NOT EXISTS public.students (
@@ -38,9 +64,11 @@ CREATE TABLE IF NOT EXISTS public.students (
 -- ------------------------------------------
 CREATE TABLE IF NOT EXISTS public.teachers (
     id TEXT PRIMARY KEY,
+    user_id INTEGER REFERENCES public.users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     faculty_id TEXT UNIQUE NOT NULL,
     department TEXT NOT NULL,
+    department_id INTEGER REFERENCES public.departments(id) ON DELETE SET NULL,
     designation TEXT NOT NULL,
     degree TEXT DEFAULT 'M.Tech',
     class_advisor TEXT DEFAULT '2nd Year CSE',
