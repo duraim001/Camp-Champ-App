@@ -16,6 +16,8 @@ CREATE TABLE IF NOT EXISTS public.students (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     register_number TEXT UNIQUE NOT NULL,
+    roll_number TEXT DEFAULT '',
+    date_of_birth DATE,
     department TEXT NOT NULL,
     course TEXT NOT NULL,
     year TEXT NOT NULL,
@@ -40,6 +42,7 @@ CREATE TABLE IF NOT EXISTS public.teachers (
     faculty_id TEXT UNIQUE NOT NULL,
     department TEXT NOT NULL,
     designation TEXT NOT NULL,
+    degree TEXT DEFAULT 'M.Tech',
     class_advisor TEXT DEFAULT '2nd Year CSE',
     subjects TEXT[] DEFAULT '{}',
     email TEXT UNIQUE NOT NULL,
@@ -49,6 +52,29 @@ CREATE TABLE IF NOT EXISTS public.teachers (
     is_present BOOLEAN DEFAULT true,
     attendance_percentage NUMERIC DEFAULT 96.5,
     status TEXT DEFAULT 'Active',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ------------------------------------------
+-- 2.1 FACULTY ACCOUNT REQUESTS TABLE
+-- ------------------------------------------
+CREATE TABLE IF NOT EXISTS public.faculty_account_requests (
+    id TEXT PRIMARY KEY,
+    full_name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    employee_id TEXT NOT NULL,
+    department TEXT NOT NULL,
+    designation TEXT NOT NULL,
+    degree TEXT DEFAULT 'M.Tech',
+    username TEXT NOT NULL,
+    password_hash TEXT NOT NULL,
+    status TEXT DEFAULT 'PENDING',
+    rejection_reason TEXT,
+    reviewed_by TEXT,
+    requested_at TIMESTAMPTZ DEFAULT NOW(),
+    reviewed_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

@@ -7,6 +7,7 @@ void main() {
     await tester.pumpWidget(const SmartSecApp());
 
     // Verify that title text exists.
-    expect(find.textContaining('SMART COLLEGE'), findsOneWidget);
+    expect(find.textContaining('CAMP CHAMP'), findsOneWidget);
   });
 }
+

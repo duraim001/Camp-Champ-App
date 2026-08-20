@@ -6,6 +6,7 @@ class FacultyAccountRequestModel {
   final String employeeId;
   final String department;
   final String designation;
+  final String degree;
   final String username;
   final String passwordHash;
   final String status; // 'PENDING', 'APPROVED', 'REJECTED'
@@ -22,6 +23,7 @@ class FacultyAccountRequestModel {
     required this.employeeId,
     required this.department,
     required this.designation,
+    this.degree = 'M.Tech',
     required this.username,
     required this.passwordHash,
     this.status = 'PENDING',
@@ -40,6 +42,7 @@ class FacultyAccountRequestModel {
       'employee_id': employeeId,
       'department': department,
       'designation': designation,
+      'degree': degree,
       'username': username,
       'password_hash': passwordHash,
       'status': status,
@@ -59,6 +62,7 @@ class FacultyAccountRequestModel {
       employeeId: json['employee_id'] ?? '',
       department: json['department'] ?? '',
       designation: json['designation'] ?? '',
+      degree: json['degree'] ?? 'M.Tech',
       username: json['username'] ?? '',
       passwordHash: json['password_hash'] ?? '',
       status: json['status'] ?? 'PENDING',
@@ -87,6 +91,7 @@ class FacultyAccountRequestModel {
       employeeId: employeeId,
       department: department,
       designation: designation,
+      degree: degree,
       username: username,
       passwordHash: passwordHash,
       status: status ?? this.status,
@@ -97,3 +102,4 @@ class FacultyAccountRequestModel {
     );
   }
 }
+

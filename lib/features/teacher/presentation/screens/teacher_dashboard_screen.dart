@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../models/teacher.dart';
 import '../../../../services/mock_teacher_service.dart';
+import '../../../../services/session_manager.dart';
 import '../../../admin/presentation/screens/admin_library_screen.dart';
 import '../../../admin/presentation/screens/admin_settings_screen.dart';
 import '../../../admin/presentation/screens/announcements_screen.dart';
@@ -24,6 +26,41 @@ class TeacherDashboardScreen extends StatefulWidget {
 class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
   int _currentIndex = 0;
   bool _hasUnreadNotifications = true;
+  TeacherModel? _teacher;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTeacherProfile();
+  }
+
+  Future<void> _loadTeacherProfile() async {
+    final userId = SessionManager().currentUserId ?? 'SEC-TCH-001';
+    final profile = await MockTeacherService().getTeacherProfile(userId);
+    if (mounted) {
+      setState(() {
+        _teacher = profile;
+      });
+    }
+  }
+
+  TeacherModel get _currentTeacher => _teacher ?? const TeacherModel(
+    id: 'SEC-TCH-001',
+    name: 'Faculty Member',
+    facultyId: 'SEC-TCH-001',
+    department: 'Artificial Intelligence and Data Science',
+    designation: 'Assistant Professor',
+    degree: 'M.Tech',
+    classAdvisor: '2nd Year AI&DS',
+    subjects: ['Engineering Topics'],
+    email: 'faculty@sengunthar.ac.in',
+    phone: '+91 90000 00002',
+    college: 'Sengunthar Engineering College',
+    location: 'Tiruchengode, Tamil Nadu',
+    isPresent: true,
+    attendancePercentage: 96.5,
+    status: 'Active',
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +134,7 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
     required String subtitle,
     required Widget child,
   }) {
-    const teacher = MockTeacherService.demoTeacher;
+    final teacher = _currentTeacher;
 
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
@@ -180,7 +217,7 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
 
   // --- TEACHER HAMBURGER MENU DRAWER (7 SECTIONS) ---
   Widget _buildTeacherDrawer(BuildContext context) {
-    const teacher = MockTeacherService.demoTeacher;
+    final teacher = _currentTeacher;
 
     return Drawer(
       backgroundColor: AppColors.white,
@@ -311,7 +348,7 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
 
   // --- SECTION 0: TEACHER DASHBOARD HOME ---
   Widget _buildDashboardHome() {
-    const teacher = MockTeacherService.demoTeacher;
+    final teacher = _currentTeacher;
     final isSaturday = DateTime.now().weekday == DateTime.saturday;
 
     return Scaffold(

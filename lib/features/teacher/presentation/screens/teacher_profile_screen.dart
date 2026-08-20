@@ -1,11 +1,37 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/routes/app_routes.dart';
+import '../../../../models/teacher.dart';
 import '../../../../services/mock_teacher_service.dart';
 import '../../../../services/session_manager.dart';
 
-class TeacherProfileScreen extends StatelessWidget {
+class TeacherProfileScreen extends StatefulWidget {
   const TeacherProfileScreen({super.key});
+
+  @override
+  State<TeacherProfileScreen> createState() => _TeacherProfileScreenState();
+}
+
+class _TeacherProfileScreenState extends State<TeacherProfileScreen> {
+  TeacherModel? _teacher;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final userId = SessionManager().currentUserId ?? 'SEC-TCH-001';
+    final profile = await MockTeacherService().getTeacherProfile(userId);
+    if (mounted) {
+      setState(() {
+        _teacher = profile;
+        _isLoading = false;
+      });
+    }
+  }
 
   void _handleLogout(BuildContext context) {
     SessionManager().clearSession();
@@ -18,7 +44,33 @@ class TeacherProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const teacher = MockTeacherService.demoTeacher;
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: AppColors.lightBackground,
+        appBar: AppBar(
+          title: const Text('Teacher Profile'),
+          backgroundColor: AppColors.primaryPurple,
+          elevation: 0,
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(color: AppColors.primaryPurple),
+        ),
+      );
+    }
+
+    final teacher = _teacher ?? const TeacherModel(
+      id: 'SEC-TCH-001',
+      name: 'Faculty Member',
+      facultyId: 'SEC-TCH-001',
+      department: 'Artificial Intelligence and Data Science',
+      designation: 'Assistant Professor',
+      degree: 'M.Tech',
+      subjects: ['Data Structures'],
+      email: 'faculty@sengunthar.ac.in',
+      phone: '+91 90000 00002',
+      college: 'Sengunthar Engineering College',
+      location: 'Tiruchengode, Tamil Nadu',
+    );
 
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
@@ -63,6 +115,7 @@ class TeacherProfileScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     Text(
                       teacher.name,
+                      textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: AppColors.primaryPurple,
                         fontWeight: FontWeight.bold,
@@ -71,7 +124,7 @@ class TeacherProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${teacher.designation} • ${teacher.facultyId}',
+                      '${teacher.designation} • ${teacher.degree}',
                       style: const TextStyle(
                         color: AppColors.secondaryText,
                         fontSize: 13,
@@ -127,6 +180,7 @@ class TeacherProfileScreen extends StatelessWidget {
                     ),
                     const Divider(height: 20),
                     _buildRow('Teacher ID', teacher.facultyId),
+                    _buildRow('Qualification / Degree', teacher.degree),
                     _buildRow('Department', teacher.department),
                     _buildRow('Designation', teacher.designation),
                     _buildRow('Class Advisor', teacher.classAdvisor),

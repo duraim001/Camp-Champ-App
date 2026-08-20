@@ -4,6 +4,7 @@ class TeacherModel {
   final String facultyId;
   final String department;
   final String designation;
+  final String degree;
   final String classAdvisor;
   final List<String> subjects;
   final String email;
@@ -20,6 +21,7 @@ class TeacherModel {
     required this.facultyId,
     required this.department,
     required this.designation,
+    this.degree = 'M.Tech',
     this.classAdvisor = '2nd Year CSE',
     required this.subjects,
     required this.email,
@@ -33,3 +35,4 @@ class TeacherModel {
 
   String get subject => subjects.isNotEmpty ? subjects.join(', ') : 'Computer Science';
 }
+

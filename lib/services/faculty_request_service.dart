@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import '../core/config/supabase_config.dart';
 import '../models/faculty_account_request.dart';
 import '../models/teacher.dart';
+import 'mock_teacher_service.dart';
 
 class FacultyRequestService {
   static final FacultyRequestService _instance = FacultyRequestService._internal();
@@ -26,6 +27,7 @@ class FacultyRequestService {
     required String employeeId,
     required String department,
     required String designation,
+    required String degree,
     required String username,
     required String password,
   }) async {
@@ -34,6 +36,7 @@ class FacultyRequestService {
       final cleanPhone = phone.trim();
       final cleanEmployeeId = employeeId.trim().toUpperCase();
       final cleanUsername = username.trim();
+      final cleanDegree = degree.trim().isNotEmpty ? degree.trim() : 'M.Tech';
 
       // Uniqueness check across local and remote
       final existingLocal = _localRequests.any(
@@ -57,6 +60,7 @@ class FacultyRequestService {
         employeeId: cleanEmployeeId,
         department: department.trim(),
         designation: designation.trim(),
+        degree: cleanDegree,
         username: cleanUsername,
         passwordHash: passwordHash,
         status: 'PENDING',
@@ -146,14 +150,17 @@ class FacultyRequestService {
           facultyId: targetRequest.employeeId,
           department: targetRequest.department,
           designation: targetRequest.designation,
+          degree: targetRequest.degree,
           classAdvisor: '${targetRequest.department} Advisor',
-          subjects: ['Subject A', 'Subject B'],
+          subjects: ['Core Engineering', 'Advanced Topics'],
           email: targetRequest.email,
           phone: targetRequest.phone,
           college: 'Sengunthar Engineering College',
           location: 'Tiruchengode, Tamil Nadu',
           status: 'Active',
         );
+
+        MockTeacherService().registerTeacher(newTeacher);
 
         try {
           await SupabaseConfig.client.from('teachers').upsert({
@@ -162,6 +169,7 @@ class FacultyRequestService {
             'faculty_id': newTeacher.facultyId,
             'department': newTeacher.department,
             'designation': newTeacher.designation,
+            'degree': newTeacher.degree,
             'email': newTeacher.email,
             'phone': newTeacher.phone,
             'college': newTeacher.college,
@@ -288,11 +296,29 @@ class FacultyRequestService {
     }
 
     if (match.status == 'APPROVED') {
+      final teacher = TeacherModel(
+        id: match.employeeId,
+        name: match.fullName,
+        facultyId: match.employeeId,
+        department: match.department,
+        designation: match.designation,
+        degree: match.degree,
+        classAdvisor: '${match.department} Advisor',
+        subjects: ['Core Engineering', 'Advanced Topics'],
+        email: match.email,
+        phone: match.phone,
+        college: 'Sengunthar Engineering College',
+        location: 'Tiruchengode, Tamil Nadu',
+        status: 'Active',
+      );
+      MockTeacherService().registerTeacher(teacher);
+
       return {
         'success': true,
         'status': 'APPROVED',
         'userId': match.employeeId,
         'facultyName': match.fullName,
+        'teacher': teacher,
       };
     }
 
@@ -302,3 +328,4 @@ class FacultyRequestService {
     };
   }
 }
+

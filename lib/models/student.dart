@@ -2,6 +2,8 @@ class StudentModel {
   final String id;
   final String name;
   final String registerNumber;
+  final String rollNumber;
+  final String dateOfBirth;
   final String department;
   final String course;
   final String year;
@@ -18,6 +20,8 @@ class StudentModel {
     required this.id,
     required this.name,
     required this.registerNumber,
+    this.rollNumber = '',
+    this.dateOfBirth = '',
     required this.department,
     required this.course,
     required this.year,

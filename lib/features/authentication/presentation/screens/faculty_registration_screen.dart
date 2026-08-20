@@ -16,6 +16,7 @@ class _FacultyRegistrationScreenState extends State<FacultyRegistrationScreen> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _employeeIdController = TextEditingController();
+  final _degreeController = TextEditingController();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -50,6 +51,7 @@ class _FacultyRegistrationScreenState extends State<FacultyRegistrationScreen> {
     _emailController.dispose();
     _phoneController.dispose();
     _employeeIdController.dispose();
+    _degreeController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -72,6 +74,7 @@ class _FacultyRegistrationScreenState extends State<FacultyRegistrationScreen> {
       employeeId: _employeeIdController.text,
       department: _selectedDepartment,
       designation: _selectedDesignation,
+      degree: _degreeController.text.trim().isNotEmpty ? _degreeController.text.trim() : 'M.Tech',
       username: _usernameController.text,
       password: _passwordController.text,
     );
@@ -281,6 +284,16 @@ class _FacultyRegistrationScreenState extends State<FacultyRegistrationScreen> {
                   onChanged: (val) {
                     if (val != null) setState(() => _selectedDesignation = val);
                   },
+                ),
+                const SizedBox(height: 12),
+
+                // Degree / Qualification Input
+                _buildTextField(
+                  controller: _degreeController,
+                  label: 'Degree / Qualification',
+                  hint: 'e.g. M.Tech, Ph.D., MCA, M.Sc., B.E., MBA',
+                  icon: Icons.school_outlined,
+                  validator: (val) => val == null || val.trim().isEmpty ? 'Please enter degree / qualification' : null,
                 ),
                 const SizedBox(height: 24),
 

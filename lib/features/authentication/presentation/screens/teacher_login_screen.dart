@@ -84,7 +84,9 @@ class _TeacherLoginScreenState extends State<TeacherLoginScreen> {
                   fontSize: 13,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+
+              const SizedBox(height: 20),
 
               // Login Form Card
               Container(

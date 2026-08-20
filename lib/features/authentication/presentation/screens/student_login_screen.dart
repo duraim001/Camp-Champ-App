@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/routes/app_routes.dart';
-import '../../../../services/session_manager.dart';
 import '../../data/mock_auth_service.dart';
-import '../widgets/login_form.dart';
+import '../widgets/google_login_button.dart';
 
-/// StudentLoginScreen renders dedicated login screen for Student account.
+/// StudentLoginScreen renders dedicated login screen for Student account using
+/// Register Number / Roll Number and Date of Birth (DD/MM/YYYY).
 class StudentLoginScreen extends StatefulWidget {
   const StudentLoginScreen({super.key});
 
@@ -14,39 +14,140 @@ class StudentLoginScreen extends StatefulWidget {
 }
 
 class _StudentLoginScreenState extends State<StudentLoginScreen> {
-  final _registerNumController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _identifierController = TextEditingController();
+  final _dobController = TextEditingController();
+  DateTime? _selectedDate;
+  bool _isLoading = false;
   bool _isDemoLoggingIn = false;
 
   @override
   void dispose() {
-    _registerNumController.dispose();
-    _passwordController.dispose();
+    _identifierController.dispose();
+    _dobController.dispose();
     super.dispose();
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final now = DateTime.now();
+    final initialDate = _selectedDate ?? DateTime(2005, 6, 15);
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(1970),
+      lastDate: now,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primaryPurple,
+              onPrimary: AppColors.white,
+              onSurface: AppColors.primaryPurple,
+              secondary: AppColors.gold,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (pickedDate != null) {
+      setState(() {
+        _selectedDate = pickedDate;
+        final day = pickedDate.day.toString().padLeft(2, '0');
+        final month = pickedDate.month.toString().padLeft(2, '0');
+        final year = pickedDate.year.toString();
+        _dobController.text = '$day/$month/$year';
+      });
+    }
+  }
+
+  Future<void> _handleLogin() async {
+    final identifier = _identifierController.text.trim();
+    final dob = _dobController.text.trim();
+
+    if (identifier.isEmpty || dob.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter your Register Number/Roll Number and Date of Birth.'),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final result = await MockAuthService().loginStudent(
+      identifier: identifier,
+      dateOfBirth: dob,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (result['success'] == true) {
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.studentDashboard,
+        (route) => false,
+      );
+    } else {
+      final errorMessage = result['error'] ?? 'Invalid Register Number/Roll Number or Date of Birth.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   void _populateAndLoginDemo() async {
     setState(() {
-      _registerNumController.text = 'SEC2024001';
-      _passwordController.text = 'Student@123';
+      _identifierController.text = 'SEC2024001';
+      _dobController.text = '15/06/2005';
+      _selectedDate = DateTime(2005, 6, 15);
       _isDemoLoggingIn = true;
     });
 
-    await Future.delayed(const Duration(milliseconds: 600));
+    final result = await MockAuthService().loginStudent(
+      identifier: 'SEC2024001',
+      dateOfBirth: '15/06/2005',
+    );
 
     if (!mounted) return;
-
-    SessionManager().setUserSession(UserRole.student, 'SEC2024001');
 
     setState(() {
       _isDemoLoggingIn = false;
     });
 
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      AppRoutes.studentDashboard,
-      (route) => false,
-    );
+    if (result['success'] == true) {
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.studentDashboard,
+        (route) => false,
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['error'] ?? 'Demo login failed'),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   @override
@@ -143,7 +244,7 @@ class _StudentLoginScreenState extends State<StudentLoginScreen> {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Register No: SEC2024001  |  Password: Student@123',
+                      'Register No: SEC2024001 / 23AIDS001  |  Roll: 01  |  DOB: 15/06/2005',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: AppColors.darkText,
@@ -207,11 +308,247 @@ class _StudentLoginScreenState extends State<StudentLoginScreen> {
                     ),
                   ],
                 ),
-                child: LoginForm(
-                  role: UserRole.student,
-                  usernameLabel: 'Register Number / Student ID',
-                  usernameController: _registerNumController,
-                  passwordController: _passwordController,
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Field 1: Register Number / Roll Number
+                      const Text(
+                        'Register Number / Roll Number',
+                        style: TextStyle(
+                          color: AppColors.primaryPurple,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: _identifierController,
+                        textInputAction: TextInputAction.next,
+                        decoration: InputDecoration(
+                          hintText: 'Enter Register Number / Roll Number',
+                          hintStyle: TextStyle(
+                            color: AppColors.secondaryText.withValues(alpha: 0.6),
+                            fontSize: 14,
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.badge_outlined,
+                            color: AppColors.primaryPurple,
+                            size: 20,
+                          ),
+                          filled: true,
+                          fillColor: AppColors.white,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: AppColors.primaryPurple.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: AppColors.primaryPurple.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: AppColors.gold,
+                              width: 2,
+                            ),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Colors.redAccent),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter your Register Number/Roll Number and Date of Birth.';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Field 2: Date of Birth
+                      const Text(
+                        'Date of Birth',
+                        style: TextStyle(
+                          color: AppColors.primaryPurple,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: _dobController,
+                        readOnly: true,
+                        onTap: () => _selectDate(context),
+                        decoration: InputDecoration(
+                          hintText: 'DD/MM/YYYY',
+                          hintStyle: TextStyle(
+                            color: AppColors.secondaryText.withValues(alpha: 0.6),
+                            fontSize: 14,
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.calendar_month_outlined,
+                            color: AppColors.primaryPurple,
+                            size: 20,
+                          ),
+                          suffixIcon: IconButton(
+                            icon: const Icon(
+                              Icons.calendar_today_rounded,
+                              color: AppColors.primaryPurple,
+                              size: 20,
+                            ),
+                            onPressed: () => _selectDate(context),
+                          ),
+                          filled: true,
+                          fillColor: AppColors.white,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: AppColors.primaryPurple.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: AppColors.primaryPurple.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: AppColors.gold,
+                              width: 2,
+                            ),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Colors.redAccent),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter your Register Number/Roll Number and Date of Birth.';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Primary LOGIN Button
+                      SizedBox(
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _handleLogin,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryPurple,
+                            foregroundColor: AppColors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              side: const BorderSide(color: AppColors.gold, width: 1.5),
+                            ),
+                            elevation: 3,
+                            shadowColor: AppColors.primaryPurple.withValues(alpha: 0.3),
+                          ),
+                          child: _isLoading
+                              ? const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        color: AppColors.gold,
+                                        strokeWidth: 2.5,
+                                      ),
+                                    ),
+                                    SizedBox(width: 12),
+                                    Text(
+                                      'Signing in...',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : const Text(
+                                  'LOGIN',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // "OR" Divider
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: 1,
+                              color: AppColors.secondaryText.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Text(
+                              'OR',
+                              style: TextStyle(
+                                color: AppColors.secondaryText,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Container(
+                              height: 1,
+                              color: AppColors.secondaryText.withValues(alpha: 0.2),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Google Login Button
+                      const GoogleLoginButton(),
+                      const SizedBox(height: 28),
+
+                      // Back to Account Selection Link
+                      Center(
+                        child: TextButton.icon(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          icon: const Icon(
+                            Icons.arrow_back,
+                            size: 16,
+                            color: AppColors.primaryPurple,
+                          ),
+                          label: const Text(
+                            'Back to account selection',
+                            style: TextStyle(
+                              color: AppColors.primaryPurple,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -221,3 +558,4 @@ class _StudentLoginScreenState extends State<StudentLoginScreen> {
     );
   }
 }
+

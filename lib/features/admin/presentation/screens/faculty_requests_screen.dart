@@ -332,6 +332,8 @@ class _FacultyRequestsScreenState extends State<FacultyRequestsScreen> with Sing
             // Details Grid
             _buildDetailRow(Icons.badge_outlined, 'Employee ID', request.employeeId),
             const SizedBox(height: 4),
+            _buildDetailRow(Icons.school_outlined, 'Degree / Qualification', request.degree),
+            const SizedBox(height: 4),
             _buildDetailRow(Icons.account_circle_outlined, 'Username', request.username),
             const SizedBox(height: 4),
             _buildDetailRow(Icons.email_outlined, 'Email', request.email),
