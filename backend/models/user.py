@@ -19,3 +19,4 @@ class User(Base):
 
     department = relationship("Department", back_populates="users")
     teacher_profile = relationship("Teacher", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    student_profile = relationship("Student", back_populates="user", uselist=False, cascade="all, delete-orphan")

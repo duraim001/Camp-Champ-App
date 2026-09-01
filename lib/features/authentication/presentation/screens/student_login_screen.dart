@@ -16,60 +16,25 @@ class StudentLoginScreen extends StatefulWidget {
 class _StudentLoginScreenState extends State<StudentLoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _identifierController = TextEditingController();
-  final _dobController = TextEditingController();
-  DateTime? _selectedDate;
+  final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
   bool _isLoading = false;
-  bool _isDemoLoggingIn = false;
 
   @override
   void dispose() {
     _identifierController.dispose();
-    _dobController.dispose();
+    _passwordController.dispose();
     super.dispose();
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final now = DateTime.now();
-    final initialDate = _selectedDate ?? DateTime(2005, 6, 15);
-    final pickedDate = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(1970),
-      lastDate: now,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.primaryPurple,
-              onPrimary: AppColors.white,
-              onSurface: AppColors.primaryPurple,
-              secondary: AppColors.gold,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (pickedDate != null) {
-      setState(() {
-        _selectedDate = pickedDate;
-        final day = pickedDate.day.toString().padLeft(2, '0');
-        final month = pickedDate.month.toString().padLeft(2, '0');
-        final year = pickedDate.year.toString();
-        _dobController.text = '$day/$month/$year';
-      });
-    }
   }
 
   Future<void> _handleLogin() async {
     final identifier = _identifierController.text.trim();
-    final dob = _dobController.text.trim();
+    final password = _passwordController.text.trim();
 
-    if (identifier.isEmpty || dob.isEmpty) {
+    if (identifier.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please enter your Register Number/Roll Number and Date of Birth.'),
+          content: Text('Please enter your Username / Register Number and Password.'),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
         ),
@@ -87,7 +52,7 @@ class _StudentLoginScreenState extends State<StudentLoginScreen> {
 
     final result = await MockAuthService().loginStudent(
       identifier: identifier,
-      dateOfBirth: dob,
+      password: password,
     );
 
     if (!mounted) return;
@@ -103,46 +68,10 @@ class _StudentLoginScreenState extends State<StudentLoginScreen> {
         (route) => false,
       );
     } else {
-      final errorMessage = result['error'] ?? 'Invalid Register Number/Roll Number or Date of Birth.';
+      final errorMessage = result['error'] ?? 'Invalid username or password.';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMessage),
-          backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-  }
-
-  void _populateAndLoginDemo() async {
-    setState(() {
-      _identifierController.text = 'SEC2024001';
-      _dobController.text = '15/06/2005';
-      _selectedDate = DateTime(2005, 6, 15);
-      _isDemoLoggingIn = true;
-    });
-
-    final result = await MockAuthService().loginStudent(
-      identifier: 'SEC2024001',
-      dateOfBirth: '15/06/2005',
-    );
-
-    if (!mounted) return;
-
-    setState(() {
-      _isDemoLoggingIn = false;
-    });
-
-    if (result['success'] == true) {
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        AppRoutes.studentDashboard,
-        (route) => false,
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['error'] ?? 'Demo login failed'),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
         ),
@@ -212,90 +141,6 @@ class _StudentLoginScreenState extends State<StudentLoginScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Demo Access Card Banner
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.gold.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: AppColors.gold.withValues(alpha: 0.6),
-                    width: 1.5,
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.stars_rounded, color: AppColors.primaryPurple, size: 20),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: const Text(
-                              'DEMO STUDENT ACCOUNT',
-                              style: TextStyle(
-                                color: AppColors.primaryPurple,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                                letterSpacing: 1.0,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Register No: SEC2024001 / 23AIDS001  |  Roll: 01  |  DOB: 15/06/2005',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: AppColors.darkText,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 44,
-                      child: ElevatedButton.icon(
-                        onPressed: _isDemoLoggingIn ? null : _populateAndLoginDemo,
-                        icon: _isDemoLoggingIn
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  color: AppColors.primaryPurple,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.flash_on_rounded, color: AppColors.primaryPurple, size: 18),
-                        label: Text(
-                          _isDemoLoggingIn ? 'Signing in as Student...' : 'LOGIN WITH DEMO ACCOUNT',
-                          style: const TextStyle(
-                            color: AppColors.primaryPurple,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 13,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.gold,
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
               // Login Form Card
               Container(
                 padding: const EdgeInsets.all(20),
@@ -318,9 +163,9 @@ class _StudentLoginScreenState extends State<StudentLoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Field 1: Register Number / Roll Number
+                      // Field 1: Username / Register Number / Email
                       const Text(
-                        'Register Number / Roll Number',
+                        'Username / Email ID / Register Number',
                         style: TextStyle(
                           color: AppColors.primaryPurple,
                           fontSize: 13,
@@ -332,13 +177,13 @@ class _StudentLoginScreenState extends State<StudentLoginScreen> {
                         controller: _identifierController,
                         textInputAction: TextInputAction.next,
                         decoration: InputDecoration(
-                          hintText: 'Enter Register Number / Roll Number',
+                          hintText: 'Enter your Username, Email, or Register No.',
                           hintStyle: TextStyle(
                             color: AppColors.secondaryText.withValues(alpha: 0.6),
                             fontSize: 14,
                           ),
                           prefixIcon: const Icon(
-                            Icons.badge_outlined,
+                            Icons.person_outline_rounded,
                             color: AppColors.primaryPurple,
                             size: 20,
                           ),
@@ -371,16 +216,16 @@ class _StudentLoginScreenState extends State<StudentLoginScreen> {
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Please enter your Register Number/Roll Number and Date of Birth.';
+                            return 'Please enter your username, email, or register number.';
                           }
                           return null;
                         },
                       ),
                       const SizedBox(height: 16),
 
-                      // Field 2: Date of Birth
+                      // Field 2: Password
                       const Text(
-                        'Date of Birth',
+                        'Password',
                         style: TextStyle(
                           color: AppColors.primaryPurple,
                           fontSize: 13,
@@ -389,27 +234,32 @@ class _StudentLoginScreenState extends State<StudentLoginScreen> {
                       ),
                       const SizedBox(height: 6),
                       TextFormField(
-                        controller: _dobController,
-                        readOnly: true,
-                        onTap: () => _selectDate(context),
+                        controller: _passwordController,
+                        obscureText: _obscurePassword,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) => _handleLogin(),
                         decoration: InputDecoration(
-                          hintText: 'DD/MM/YYYY',
+                          hintText: 'Enter your Password',
                           hintStyle: TextStyle(
                             color: AppColors.secondaryText.withValues(alpha: 0.6),
                             fontSize: 14,
                           ),
                           prefixIcon: const Icon(
-                            Icons.calendar_month_outlined,
+                            Icons.lock_outline_rounded,
                             color: AppColors.primaryPurple,
                             size: 20,
                           ),
                           suffixIcon: IconButton(
-                            icon: const Icon(
-                              Icons.calendar_today_rounded,
+                            icon: Icon(
+                              _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                               color: AppColors.primaryPurple,
                               size: 20,
                             ),
-                            onPressed: () => _selectDate(context),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
                           ),
                           filled: true,
                           fillColor: AppColors.white,
@@ -440,7 +290,7 @@ class _StudentLoginScreenState extends State<StudentLoginScreen> {
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Please enter your Register Number/Roll Number and Date of Birth.';
+                            return 'Please enter your password.';
                           }
                           return null;
                         },

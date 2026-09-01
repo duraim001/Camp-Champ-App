@@ -12,20 +12,37 @@ class MockTeacherService {
 
   final List<TeacherModel> _teachers = [
     const TeacherModel(
-      id: 'SEC-TCH-001',
-      name: 'Mr. M. Preamkumar',
-      facultyId: 'SEC-TCH-001',
+      id: 'b244e619-27da-4ccb-9e2f-4380c78fb9c8',
+      name: 'Mrs. Santhipriya S M.E.',
+      facultyId: 'b244e619-27da-4ccb-9e2f-4380c78fb9c8',
       department: 'Artificial Intelligence and Data Science',
-      designation: 'Assistant Professor',
-      degree: 'M.Tech',
-      classAdvisor: '2nd Year AI&DS Advisor',
-      subjects: ['Data Structures', 'Machine Learning'],
-      email: 'preamkumar@sengunthar.ac.in',
-      phone: '+91 90000 00002',
+      designation: 'Head of Department (HOD)',
+      degree: 'M.E.',
+      classAdvisor: 'AI&DS HOD',
+      subjects: ['Artificial Intelligence', 'Machine Learning', 'Data Science'],
+      email: 'santhipriyahod@gmail.com',
+      phone: '+91 90000 00001',
       college: 'Sengunthar Engineering College',
       location: 'Tiruchengode, Tamil Nadu',
       isPresent: true,
-      attendancePercentage: 96.5,
+      attendancePercentage: 100.0,
+      status: 'Active',
+    ),
+    const TeacherModel(
+      id: 'SEC-AIDS-COORD',
+      name: 'M. Premkumar',
+      facultyId: 'SEC-AIDS-COORD',
+      department: 'Artificial Intelligence and Data Science',
+      designation: 'Department Coordinator',
+      degree: 'M.E.',
+      classAdvisor: 'AI&DS Department Coordinator',
+      subjects: ['Artificial Intelligence', 'Data Science & ML'],
+      email: 'aidscoordinator@sengunthar.ac.in',
+      phone: '+91 90000 00003',
+      college: 'Sengunthar Engineering College',
+      location: 'Tiruchengode, Tamil Nadu',
+      isPresent: true,
+      attendancePercentage: 100.0,
       status: 'Active',
     ),
   ];
@@ -48,26 +65,38 @@ class MockTeacherService {
   Future<TeacherModel> getTeacherProfile(String teacherId) async {
     final trimmedId = teacherId.trim().toLowerCase();
 
+    if (trimmedId == 'b244e619-27da-4ccb-9e2f-4380c78fb9c8' ||
+        trimmedId == 'sec-aids-hod' ||
+        trimmedId == 'santhipriyahod@gmail.com' ||
+        trimmedId.contains('santhipriya')) {
+      return _teachers.first;
+    }
+
     // 1. Try fetching from FastAPI /auth/me or API
     try {
       final meResult = await ApiClient().getMe();
       if (meResult['success'] == true && meResult['user'] != null) {
         final u = meResult['user'];
+        final rawDept = u['department'] ?? 'AI&DS';
+        final deptDisplay = (rawDept == 'AI&DS' || rawDept == 'AIDS')
+            ? 'Artificial Intelligence and Data Science'
+            : rawDept;
+
         final t = TeacherModel(
-          id: u['employee_id'] ?? u['username'] ?? 'TCH',
-          name: u['name'] ?? 'Faculty Member',
-          facultyId: u['employee_id'] ?? u['username'] ?? 'TCH',
-          department: u['department'] ?? 'AI&DS',
-          designation: u['designation'] ?? 'Assistant Professor',
-          degree: u['degree'] ?? 'M.Tech',
-          classAdvisor: '${u['department'] ?? "Engineering"} Advisor',
-          subjects: ['Core Engineering', 'Advanced Topics'],
-          email: u['email'] ?? 'faculty@sengunthar.ac.in',
-          phone: '+91 90000 00002',
+          id: u['employee_id'] ?? u['username'] ?? 'SEC-AIDS-COORD',
+          name: u['name'] ?? 'M. Premkumar',
+          facultyId: u['employee_id'] ?? u['username'] ?? 'SEC-AIDS-COORD',
+          department: deptDisplay,
+          designation: u['designation'] ?? 'Department Coordinator',
+          degree: u['degree'] ?? 'M.E.',
+          classAdvisor: '$deptDisplay Advisor',
+          subjects: ['Artificial Intelligence', 'Data Science & ML'],
+          email: u['email'] ?? 'aidscoordinator@sengunthar.ac.in',
+          phone: '+91 90000 00003',
           college: 'Sengunthar Engineering College',
           location: 'Tiruchengode, Tamil Nadu',
           isPresent: true,
-          attendancePercentage: 96.5,
+          attendancePercentage: 100.0,
           status: 'Active',
         );
         registerTeacher(t);
@@ -86,17 +115,22 @@ class MockTeacherService {
           .maybeSingle();
 
       if (res != null) {
+        final rawDept = res['department'] ?? 'AI&DS';
+        final deptDisplay = (rawDept == 'AI&DS' || rawDept == 'AIDS')
+            ? 'Artificial Intelligence and Data Science'
+            : rawDept;
+
         final t = TeacherModel(
           id: res['id'] ?? teacherId,
           name: res['name'] ?? teacherId,
           facultyId: res['faculty_id'] ?? teacherId,
-          department: res['department'] ?? 'AI&DS',
-          designation: res['designation'] ?? 'Assistant Professor',
-          degree: res['degree'] ?? 'M.Tech',
-          classAdvisor: '${res['department'] ?? "Engineering"} Advisor',
-          subjects: ['Core Engineering', 'Advanced Topics'],
+          department: deptDisplay,
+          designation: res['designation'] ?? 'Department Coordinator',
+          degree: res['degree'] ?? 'M.E.',
+          classAdvisor: '$deptDisplay Advisor',
+          subjects: ['Artificial Intelligence', 'Data Science & ML'],
           email: res['email'] ?? '$teacherId@sengunthar.ac.in',
-          phone: res['phone'] ?? '+91 90000 00002',
+          phone: res['phone'] ?? '+91 90000 00003',
           college: res['college'] ?? 'Sengunthar Engineering College',
           location: res['location'] ?? 'Tiruchengode, Tamil Nadu',
           status: res['status'] ?? 'Active',
@@ -134,13 +168,13 @@ class MockTeacherService {
           designation: r.designation,
           degree: r.degree,
           classAdvisor: '${r.department} Advisor',
-          subjects: ['Core Engineering', 'Advanced Topics'],
+          subjects: ['Artificial Intelligence', 'Data Science & ML'],
           email: r.email,
           phone: r.phone,
           college: 'Sengunthar Engineering College',
           location: 'Tiruchengode, Tamil Nadu',
           isPresent: true,
-          attendancePercentage: 98.0,
+          attendancePercentage: 100.0,
           status: 'Active',
         );
         registerTeacher(teacher);
@@ -150,18 +184,18 @@ class MockTeacherService {
 
     // 5. Fallback
     final currentSession = SessionManager();
-    final name = currentSession.userName ?? (teacherId.isNotEmpty ? teacherId : 'Faculty Member');
+    final name = currentSession.userName ?? (teacherId.isNotEmpty ? teacherId : 'M. Premkumar');
 
     return TeacherModel(
-      id: teacherId.isNotEmpty ? teacherId : 'SEC-TCH-001',
+      id: teacherId.isNotEmpty ? teacherId : 'SEC-AIDS-COORD',
       name: name,
-      facultyId: teacherId.isNotEmpty ? teacherId : 'SEC-TCH-001',
+      facultyId: teacherId.isNotEmpty ? teacherId : 'SEC-AIDS-COORD',
       department: 'Artificial Intelligence and Data Science',
-      designation: 'Assistant Professor',
-      degree: 'M.Tech',
-      subjects: ['Engineering'],
-      email: '$teacherId@sengunthar.ac.in',
-      phone: '+91 90000 00002',
+      designation: 'Department Coordinator',
+      degree: 'M.E.',
+      subjects: ['Artificial Intelligence'],
+      email: 'aidscoordinator@sengunthar.ac.in',
+      phone: '+91 90000 00003',
       college: 'Sengunthar Engineering College',
       location: 'Tiruchengode, Tamil Nadu',
     );

@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     # Database URL: Can connect to Supabase PostgreSQL directly or use SQLite local fallback for seamless dev/testing
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL", 
-        "sqlite:///./camp_champ.db"
+        f"sqlite:///{os.path.abspath(os.path.join(os.path.dirname(__file__), 'camp_champ.db')).replace(os.sep, '/')}"
     )
     
     # JWT Settings

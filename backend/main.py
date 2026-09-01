@@ -4,12 +4,13 @@ from config import settings
 from routers.auth_router import router as auth_router
 from routers.admin_router import router as admin_router
 from routers.teacher_router import router as teacher_router
+from routers.student_router import router as student_router
 from seed import init_db
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="Camp Champ REST API for persistent authentication, teacher accounts, and administration."
+    description="Camp Champ REST API for persistent authentication, student/teacher accounts, and administration."
 )
 
 # Configure CORS
@@ -25,6 +26,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(admin_router)
 app.include_router(teacher_router)
+app.include_router(student_router)
 
 @app.on_event("startup")
 def on_startup():

@@ -5,7 +5,8 @@ import '../../../../services/faculty_request_service.dart';
 import '../../../../services/session_manager.dart';
 
 class FacultyRequestsScreen extends StatefulWidget {
-  const FacultyRequestsScreen({super.key});
+  final String? departmentFilter;
+  const FacultyRequestsScreen({super.key, this.departmentFilter});
 
   @override
   State<FacultyRequestsScreen> createState() => _FacultyRequestsScreenState();
@@ -52,7 +53,14 @@ class _FacultyRequestsScreenState extends State<FacultyRequestsScreen> with Sing
           req.fullName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           req.employeeId.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           req.department.toLowerCase().contains(_searchQuery.toLowerCase());
-      return matchesStatus && matchesSearch;
+
+      final filterDept = widget.departmentFilter?.toLowerCase().replaceAll('&', 'and').trim();
+      bool matchesDept = true;
+      if (filterDept != null && filterDept.isNotEmpty) {
+        final reqDept = req.department.toLowerCase().replaceAll('&', 'and').trim();
+        matchesDept = reqDept.contains(filterDept) || filterDept.contains(reqDept) || (filterDept.contains('ai') && reqDept.contains('ai'));
+      }
+      return matchesStatus && matchesSearch && matchesDept;
     }).toList();
   }
 

@@ -114,62 +114,12 @@ class SupabaseService {
 
   Future<Map<String, dynamic>> authenticateStudent({
     required String identifier,
-    required String dateOfBirth,
+    required String password,
   }) async {
-    try {
-      final normalizedDob = MockStudentService.normalizeDate(dateOfBirth);
-      final trimmedIdentifier = identifier.trim().toLowerCase();
-
-      final response = await _client
-          .from('students')
-          .select('id, name, register_number, roll_number, date_of_birth, status')
-          .or('register_number.ilike.$trimmedIdentifier,roll_number.ilike.$trimmedIdentifier');
-
-      final list = response as List<dynamic>;
-      if (list.isEmpty) {
-        return {
-          'success': false,
-          'error': 'Invalid Register Number/Roll Number or Date of Birth.',
-        };
-      }
-
-      final student = list.first;
-      final studentDob = MockStudentService.normalizeDate(student['date_of_birth']?.toString() ?? '');
-
-      if (normalizedDob == null || normalizedDob != studentDob) {
-        return {
-          'success': false,
-          'error': 'Invalid Register Number/Roll Number or Date of Birth.',
-        };
-      }
-
-      if ((student['status']?.toString().toLowerCase() ?? '') != 'active') {
-        return {
-          'success': false,
-          'error': 'Your account is currently inactive. Please contact the administrator.',
-        };
-      }
-
-      return {
-        'success': true,
-        'access_token': 'sb-jwt-token-${student['register_number']}',
-        'token_type': 'bearer',
-        'user': {
-          'id': student['id'],
-          'register_number': student['register_number'],
-          'roll_number': student['roll_number'],
-          'name': student['name'],
-          'role': 'STUDENT',
-        },
-      };
-    } catch (e) {
-      debugPrint('Supabase student auth fallback: $e');
-      // Fallback to local mock authentication
-      return MockStudentService().authenticateStudent(
-        identifier: identifier,
-        dateOfBirth: dateOfBirth,
-      );
-    }
+    return MockStudentService().authenticateStudent(
+      identifier: identifier,
+      password: password,
+    );
   }
 
   // --- TEACHERS ---

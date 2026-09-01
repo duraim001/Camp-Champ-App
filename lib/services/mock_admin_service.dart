@@ -9,17 +9,7 @@ class MockAdminService {
   MockAdminService._internal();
 
   AdminModel getAdminProfile([String? adminId]) {
-    if (adminId == 'santhipriyahod@gmail.com' || adminId == 'SEC-AIDS-HOD') {
-      return const AdminModel(
-        id: 'SEC-AIDS-HOD',
-        name: 'Dr. Santhipriya',
-        email: 'santhipriyahod@gmail.com',
-        role: 'HOD - AI & Data Science',
-        designation: 'Head of Department (AIDS)',
-        college: 'Sengunthar Engineering College',
-        location: 'Tiruchengode, Namakkal District, Tamil Nadu',
-      );
-    } else if (adminId == 'HOD-001' || adminId == 'ramesh') {
+    if (adminId == 'HOD-001' || adminId == 'ramesh') {
       return const AdminModel(
         id: 'SEC-HOD-001',
         name: 'Ramesh',

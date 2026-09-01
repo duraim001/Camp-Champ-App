@@ -74,12 +74,23 @@ def register_faculty(req: FacultyRegistrationRequest, db: Session = Depends(get_
         "request_id": new_request.id
     }
 
+from models.student import Student
+
 @router.post("/login", response_model=LoginResponse)
 def login(login_req: LoginRequest, db: Session = Depends(get_db)):
     clean_username = login_req.username.strip()
     user = db.query(User).filter(
-        (User.username == clean_username) | (User.email == clean_username.lower())
+        (User.username.ilike(clean_username)) | (User.email.ilike(clean_username))
     ).first()
+
+    if not user:
+        # Also check if username matches student register number or roll number
+        student_match = db.query(Student).filter(
+            (Student.register_number.ilike(clean_username)) |
+            (Student.roll_number.ilike(clean_username))
+        ).first()
+        if student_match and student_match.user_id:
+            user = db.query(User).filter(User.id == student_match.user_id).first()
 
     if not user:
         raise HTTPException(
@@ -103,21 +114,40 @@ def login(login_req: LoginRequest, db: Session = Depends(get_db)):
     token_data = {"sub": user.username, "role": user.role, "user_id": user.id}
     token = create_access_token(token_data)
 
-    # Resolve details from teacher profile or user
+    # Resolve details from teacher profile, student profile or user
     dept_name = None
     designation = None
     degree = None
     emp_id = None
+    reg_no = None
+    roll_no = None
+    year = None
+    section = None
+    course = None
+    semester = None
+    phone = None
+    att_pct = None
 
     if user.department:
-        dept_name = user.department.name
+        dept_name = user.department.code or user.department.name
 
     if user.teacher_profile:
         emp_id = user.teacher_profile.employee_id
         designation = user.teacher_profile.designation
         degree = user.teacher_profile.degree
         if user.teacher_profile.department:
-            dept_name = user.teacher_profile.department.name
+            dept_name = user.teacher_profile.department.code or user.teacher_profile.department.name
+
+    if user.student_profile:
+        reg_no = user.student_profile.register_number
+        roll_no = user.student_profile.roll_number
+        year = user.student_profile.year
+        section = user.student_profile.section
+        course = user.student_profile.course
+        semester = user.student_profile.semester
+        phone = user.student_profile.phone
+        att_pct = user.student_profile.attendance_percentage
+        dept_name = user.student_profile.department
 
     user_resp = UserResponse(
         id=user.id,
@@ -129,6 +159,14 @@ def login(login_req: LoginRequest, db: Session = Depends(get_db)):
         designation=designation,
         degree=degree,
         employee_id=emp_id,
+        register_number=reg_no,
+        roll_number=roll_no,
+        year=year,
+        section=section,
+        course=course,
+        semester=semester,
+        phone=phone,
+        attendance_percentage=att_pct,
         is_active=user.is_active
     )
 
@@ -140,16 +178,35 @@ def get_current_user_profile(current_user: User = Depends(get_current_user)):
     designation = None
     degree = None
     emp_id = None
+    reg_no = None
+    roll_no = None
+    year = None
+    section = None
+    course = None
+    semester = None
+    phone = None
+    att_pct = None
 
     if current_user.department:
-        dept_name = current_user.department.name
+        dept_name = current_user.department.code or current_user.department.name
 
     if current_user.teacher_profile:
         emp_id = current_user.teacher_profile.employee_id
         designation = current_user.teacher_profile.designation
         degree = current_user.teacher_profile.degree
         if current_user.teacher_profile.department:
-            dept_name = current_user.teacher_profile.department.name
+            dept_name = current_user.teacher_profile.department.code or current_user.teacher_profile.department.name
+
+    if current_user.student_profile:
+        reg_no = current_user.student_profile.register_number
+        roll_no = current_user.student_profile.roll_number
+        year = current_user.student_profile.year
+        section = current_user.student_profile.section
+        course = current_user.student_profile.course
+        semester = current_user.student_profile.semester
+        phone = current_user.student_profile.phone
+        att_pct = current_user.student_profile.attendance_percentage
+        dept_name = current_user.student_profile.department
 
     return UserResponse(
         id=current_user.id,
@@ -161,5 +218,13 @@ def get_current_user_profile(current_user: User = Depends(get_current_user)):
         designation=designation,
         degree=degree,
         employee_id=emp_id,
+        register_number=reg_no,
+        roll_number=roll_no,
+        year=year,
+        section=section,
+        course=course,
+        semester=semester,
+        phone=phone,
+        attendance_percentage=att_pct,
         is_active=current_user.is_active
     )

@@ -10,10 +10,10 @@ class ApiClient {
 
   // Change this to your machine's local IP or backend URL if testing on physical mobile device
   static String baseUrl = kIsWeb
-      ? 'http://localhost:8090'
+      ? 'http://localhost:8000'
       : (defaultTargetPlatform == TargetPlatform.android
-          ? 'http://127.0.0.1:8090'
-          : 'http://localhost:8090');
+          ? 'http://127.0.0.1:8000'
+          : 'http://localhost:8000');
 
   String? _authToken;
 
@@ -46,7 +46,7 @@ class ApiClient {
         url,
         headers: _headers(requiresAuth: false),
         body: jsonEncode({'username': username, 'password': password}),
-      ).timeout(const Duration(milliseconds: 1500));
+      ).timeout(const Duration(seconds: 5));
 
       final data = jsonDecode(response.body);
       if (response.statusCode == 200 && data['token'] != null) {
@@ -55,6 +55,7 @@ class ApiClient {
       } else {
         return {
           'success': false,
+          'statusCode': response.statusCode,
           'error': data['detail'] ?? 'Login failed. Please check credentials.'
         };
       }
@@ -91,7 +92,7 @@ class ApiClient {
           'username': username,
           'password': password,
         }),
-      ).timeout(const Duration(milliseconds: 1500));
+      ).timeout(const Duration(seconds: 5));
 
       final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
@@ -111,7 +112,7 @@ class ApiClient {
       final response = await http.get(
         url,
         headers: _headers(requiresAuth: true),
-      ).timeout(const Duration(milliseconds: 1500));
+      ).timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
         return {'success': true, 'user': jsonDecode(response.body)};
@@ -203,6 +204,76 @@ class ApiClient {
       return null;
     } catch (e) {
       debugPrint('ApiClient getTeachers error: $e');
+      return null;
+    }
+  }
+
+  // --- STUDENTS ---
+  Future<List<dynamic>?> getStudents({
+    String? department,
+    String? year,
+    String? query,
+  }) async {
+    try {
+      final params = <String, String>{};
+      if (department != null && department.isNotEmpty && department != 'All') {
+        params['department'] = department;
+      }
+      if (year != null && year.isNotEmpty && year != 'All') {
+        params['year'] = year;
+      }
+      if (query != null && query.isNotEmpty) {
+        params['query'] = query;
+      }
+
+      final uri = Uri.parse('$baseUrl/students').replace(queryParameters: params.isNotEmpty ? params : null);
+      final response = await http.get(
+        uri,
+        headers: _headers(requiresAuth: true),
+      ).timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as List<dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('ApiClient getStudents error: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getStudentMe() async {
+    try {
+      final url = Uri.parse('$baseUrl/students/me');
+      final response = await http.get(
+        url,
+        headers: _headers(requiresAuth: true),
+      ).timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('ApiClient getStudentMe error: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getStudentById(String studentId) async {
+    try {
+      final url = Uri.parse('$baseUrl/students/$studentId');
+      final response = await http.get(
+        url,
+        headers: _headers(requiresAuth: true),
+      ).timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('ApiClient getStudentById error: $e');
       return null;
     }
   }

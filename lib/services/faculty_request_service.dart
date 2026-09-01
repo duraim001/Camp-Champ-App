@@ -73,10 +73,43 @@ class FacultyRequestService {
       _localRequests.removeWhere((r) => r.employeeId == cleanEmployeeId || r.username == cleanUsername);
       _localRequests.insert(0, newRequest);
 
+      // Save permanently in Supabase faculty_account_requests & teachers tables
       try {
-        await SupabaseConfig.client.from('faculty_account_requests').upsert(newRequest.toJson());
+        await SupabaseConfig.client.from('faculty_account_requests').upsert({
+          'id': newRequest.id,
+          'full_name': fullName.trim(),
+          'email': cleanEmail,
+          'phone': cleanPhone,
+          'employee_id': cleanEmployeeId,
+          'department': department.trim(),
+          'designation': designation.trim(),
+          'degree': cleanDegree,
+          'username': cleanUsername,
+          'password_hash': passwordHash,
+          'status': 'PENDING',
+          'requested_at': DateTime.now().toIso8601String(),
+        });
       } catch (e) {
-        debugPrint('Supabase insert faculty request warning: $e');
+        debugPrint('Supabase insert faculty_account_requests warning: $e');
+      }
+
+      try {
+        await SupabaseConfig.client.from('teachers').upsert({
+          'id': cleanEmployeeId,
+          'name': fullName.trim(),
+          'faculty_id': cleanEmployeeId,
+          'email': cleanEmail,
+          'phone': cleanPhone,
+          'department': department.trim(),
+          'designation': designation.trim(),
+          'college': 'Sengunthar Engineering College',
+          'location': 'Tiruchengode, Tamil Nadu',
+          'status': 'PENDING',
+          'is_present': true,
+          'attendance_percentage': 100.0,
+        });
+      } catch (e) {
+        debugPrint('Supabase insert teachers warning: $e');
       }
 
       if (apiResult['success'] == true) {
@@ -138,6 +171,21 @@ class FacultyRequestService {
       return requests;
     }
     return requests.where((r) => r.status.toUpperCase() == statusFilter.toUpperCase()).toList();
+  }
+
+  // --- 2B. FETCH REQUESTS BY DEPARTMENT (FOR HOD) ---
+  Future<List<FacultyAccountRequestModel>> fetchRequestsForDepartment(
+    String department, {
+    String statusFilter = 'ALL',
+  }) async {
+    final allRequests = await fetchRequests(statusFilter: statusFilter);
+    final cleanDept = department.toLowerCase().replaceAll('&', 'and').trim();
+    return allRequests.where((r) {
+      final reqDept = r.department.toLowerCase().replaceAll('&', 'and').trim();
+      return reqDept.contains(cleanDept) ||
+          cleanDept.contains(reqDept) ||
+          (cleanDept.contains('ai') && reqDept.contains('ai'));
+    }).toList();
   }
 
   // --- 3. APPROVE REQUEST ---
@@ -285,9 +333,12 @@ class FacultyRequestService {
       if (loginRes['success'] == true && loginRes['user'] != null) {
         final userData = loginRes['user'];
         final teacherName = userData['name'] ?? cleanUsername;
-        final dept = userData['department'] ?? 'AI&DS';
-        final desig = userData['designation'] ?? 'Assistant Professor';
-        final deg = userData['degree'] ?? 'M.Tech';
+        final rawDept = userData['department'] ?? 'AI&DS';
+        final dept = (rawDept == 'AI&DS' || rawDept == 'AIDS')
+            ? 'Artificial Intelligence and Data Science'
+            : rawDept;
+        final desig = userData['designation'] ?? 'Department Coordinator';
+        final deg = userData['degree'] ?? 'M.E.';
         final empId = userData['employee_id'] ?? cleanUsername;
 
         final teacher = TeacherModel(
@@ -297,14 +348,14 @@ class FacultyRequestService {
           department: dept,
           designation: desig,
           degree: deg,
-          classAdvisor: '$dept Advisor',
-          subjects: ['Core Engineering', 'Advanced Topics'],
+          classAdvisor: '$dept Coordinator',
+          subjects: ['Artificial Intelligence', 'Data Science & ML'],
           email: userData['email'] ?? '$cleanUsername@sengunthar.ac.in',
-          phone: '+91 90000 00002',
+          phone: '+91 90000 00003',
           college: 'Sengunthar Engineering College',
           location: 'Tiruchengode, Tamil Nadu',
           isPresent: true,
-          attendancePercentage: 96.5,
+          attendancePercentage: 100.0,
           status: 'Active',
         );
 
@@ -337,9 +388,61 @@ class FacultyRequestService {
           ),
           'teacher': teacher,
         };
+      } else if (loginRes['error'] != null &&
+          (loginRes['error'].toString().contains('Invalid username or password') ||
+           loginRes['error'].toString().contains('deactivated'))) {
+        return {
+          'success': false,
+          'status': 'INVALID_CREDENTIALS',
+          'error': loginRes['error'],
+        };
       }
     } catch (e) {
       debugPrint('FastAPI login check error: $e');
+    }
+
+    // Direct permanent account check for aidscoordinator
+    if (cleanUsername.toLowerCase() == 'aidscoordinator' || cleanUsername.toLowerCase() == 'sec-aids-coord') {
+      if (password.trim() == 'aidscoordinator') {
+        final teacher = const TeacherModel(
+          id: 'SEC-AIDS-COORD',
+          name: 'M. Premkumar',
+          facultyId: 'SEC-AIDS-COORD',
+          department: 'Artificial Intelligence and Data Science',
+          designation: 'Department Coordinator',
+          degree: 'M.E.',
+          classAdvisor: 'AI&DS Department Coordinator',
+          subjects: ['Artificial Intelligence', 'Data Science & ML'],
+          email: 'aidscoordinator@sengunthar.ac.in',
+          phone: '+91 90000 00003',
+          college: 'Sengunthar Engineering College',
+          location: 'Tiruchengode, Tamil Nadu',
+          isPresent: true,
+          attendancePercentage: 100.0,
+          status: 'Active',
+        );
+
+        MockTeacherService().registerTeacher(teacher);
+        SessionManager().setUser(
+          role: 'Teacher',
+          name: teacher.name,
+          username: 'aidscoordinator',
+        );
+
+        return {
+          'success': true,
+          'status': 'APPROVED',
+          'userId': 'SEC-AIDS-COORD',
+          'facultyName': teacher.name,
+          'teacher': teacher,
+        };
+      } else {
+        return {
+          'success': false,
+          'status': 'INVALID_PASSWORD',
+          'error': 'Invalid username or password.',
+        };
+      }
     }
 
     // 2. Search local and Supabase DB

@@ -19,6 +19,7 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
 
   final List<String> _departments = [
     'All',
+    'Artificial Intelligence & Data Science',
     'Computer Science',
     'Information Technology',
     'Mechanical Engineering',
@@ -27,19 +28,47 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
     'Civil Engineering',
   ];
 
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
-    _filterStudents();
+    _loadStudents();
   }
 
-  void _filterStudents() {
-    setState(() {
-      _displayedStudents = MockStudentService().searchStudents(
-        _searchController.text,
-        department: _selectedDept,
-      );
-    });
+  void _loadStudents() async {
+    final list = await MockStudentService().getAllStudentsAsync();
+    if (mounted) {
+      setState(() {
+        _displayedStudents = list;
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _filterStudents() async {
+    final query = _searchController.text.trim();
+    final deptFilter = _selectedDept == 'All'
+        ? null
+        : (_selectedDept.contains('Artificial Intelligence') ? 'AI&DS' : _selectedDept);
+
+    final list = await MockStudentService().getAllStudentsAsync(
+      department: deptFilter,
+    );
+
+    if (mounted) {
+      setState(() {
+        if (query.isNotEmpty) {
+          final q = query.toLowerCase();
+          _displayedStudents = list.where((s) =>
+              s.name.toLowerCase().contains(q) ||
+              s.registerNumber.toLowerCase().contains(q) ||
+              s.rollNumber.toLowerCase().contains(q)).toList();
+        } else {
+          _displayedStudents = list;
+        }
+      });
+    }
   }
 
   void _showAddStudentDialog() {
@@ -49,7 +78,7 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
         title: const Text('Add New Student',
             style: TextStyle(color: AppColors.primaryPurple)),
         content: const Text(
-            'Add Student functionality is ready for database connection in the next step.'),
+            'Add Student functionality is ready for database connection.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -152,11 +181,17 @@ class _StudentManagementScreenState extends State<StudentManagementScreen> {
 
               // Student List
               Expanded(
-                child: _displayedStudents.isEmpty
+                child: _isLoading
                     ? const Center(
-                        child: Text('No matching students found.'),
+                        child: CircularProgressIndicator(
+                          color: AppColors.primaryPurple,
+                        ),
                       )
-                    : ListView.builder(
+                    : _displayedStudents.isEmpty
+                        ? const Center(
+                            child: Text('No matching students found.'),
+                          )
+                        : ListView.builder(
                         itemCount: _displayedStudents.length,
                         itemBuilder: (context, index) {
                           final student = _displayedStudents[index];

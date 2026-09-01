@@ -15,6 +15,7 @@ import 'teacher_notifications_screen.dart';
 import 'teacher_parent_details_screen.dart';
 import 'teacher_profile_screen.dart';
 import 'teacher_students_screen.dart';
+import '../../../admin/presentation/screens/faculty_requests_screen.dart';
 
 class TeacherDashboardScreen extends StatefulWidget {
   const TeacherDashboardScreen({super.key});
@@ -118,6 +119,12 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
           child: const TeacherGrievanceScreen(),
         );
       case 6:
+        return _buildHeaderWrapper(
+          title: 'Department Faculty Requests',
+          subtitle: '${_currentTeacher.department} Faculty Approvals',
+          child: FacultyRequestsScreen(departmentFilter: _currentTeacher.department),
+        );
+      case 7:
         return _buildHeaderWrapper(
           title: 'Teacher Settings',
           subtitle: 'Portal Preferences & Configurations',
@@ -305,7 +312,8 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
                 _buildDrawerTile(3, 'Library', Icons.menu_book_rounded),
                 _buildDrawerTile(4, 'Exams', Icons.assignment_turned_in_rounded),
                 _buildDrawerTile(5, 'Student Grievance', Icons.report_problem_rounded),
-                _buildDrawerTile(6, 'Settings', Icons.settings_rounded),
+                _buildDrawerTile(6, 'Faculty Requests (HOD)', Icons.group_add_rounded),
+                _buildDrawerTile(7, 'Settings', Icons.settings_rounded),
               ],
             ),
           ),
